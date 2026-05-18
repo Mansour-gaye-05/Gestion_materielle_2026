@@ -1,0 +1,338 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UFR Sciences de l'Ingenieur - Gestion du Materiel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; }
+
+        /* HERO */
+        .hero {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.65)),
+                        url("{% static 'images/image.jpeg' %}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* NAVBAR */
+        .top-nav { padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .top-nav .brand { color: white; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .top-nav .nav-links { display: flex; gap: 10px; }
+
+        /* HERO CONTENT */
+        .hero-content { flex: 1; display: flex; align-items: center; padding: 40px; }
+        .hero-left { max-width: 600px; }
+        .hero-badge { display: inline-block; background: rgba(52,152,219,0.3); border: 1px solid rgba(52,152,219,0.6); color: #3498db; padding: 6px 16px; border-radius: 25px; font-size: 0.82rem; font-weight: 600; margin-bottom: 20px; backdrop-filter: blur(10px); }
+        .hero-title { font-size: 3rem; font-weight: 900; color: white; line-height: 1.2; margin-bottom: 20px; }
+        .hero-title span { color: #3498db; }
+        .hero-subtitle { font-size: 1.1rem; color: rgba(255,255,255,0.8); margin-bottom: 35px; line-height: 1.7; }
+        .hero-btns { display: flex; gap: 15px; flex-wrap: wrap; }
+        .btn-hero-primary { background: linear-gradient(135deg,#2c3e50,#3498db); color: white; padding: 14px 35px; border-radius: 30px; font-weight: 700; font-size: 0.95rem; border: none; text-decoration: none; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(52,152,219,0.4); color: white; }
+        .btn-hero-secondary { background: rgba(255,255,255,0.15); color: white; padding: 14px 35px; border-radius: 30px; font-weight: 700; font-size: 0.95rem; border: 1px solid rgba(255,255,255,0.4); text-decoration: none; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; backdrop-filter: blur(10px); }
+        .btn-hero-secondary:hover { background: rgba(255,255,255,0.25); color: white; transform: translateY(-3px); }
+
+        /* STATS HERO */
+        .hero-stats { display: flex; gap: 30px; margin-top: 50px; flex-wrap: wrap; }
+        .stat-item { text-align: center; }
+        .stat-item .num { font-size: 2rem; font-weight: 900; color: white; }
+        .stat-item .lbl { font-size: 0.78rem; color: rgba(255,255,255,0.65); text-transform: uppercase; letter-spacing: 1px; }
+        .stat-divider { width: 1px; background: rgba(255,255,255,0.2); }
+
+        /* CARDS ACCES */
+        .access-section { background: #f0f2f5; padding: 80px 40px; }
+        .section-title { text-align: center; margin-bottom: 50px; }
+        .section-title h2 { font-size: 2rem; font-weight: 800; color: #2c3e50; }
+        .section-title p { color: #666; margin-top: 10px; }
+        .access-card { border: none; border-radius: 20px; overflow: hidden; transition: all 0.3s; box-shadow: 0 5px 20px rgba(0,0,0,0.08); height: 100%; }
+        .access-card:hover { transform: translateY(-8px); box-shadow: 0 20px 50px rgba(0,0,0,0.15); }
+        .access-card .card-header-custom { padding: 35px 30px 20px; }
+        .access-card .card-body { padding: 20px 30px 35px; }
+        .icon-wrap { width: 70px; height: 70px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+        .icon-wrap i { font-size: 2rem; color: white; }
+        .access-card h4 { font-size: 1.3rem; font-weight: 800; margin-bottom: 12px; }
+        .access-card ul { list-style: none; padding: 0; margin-bottom: 25px; }
+        .access-card ul li { padding: 5px 0; font-size: 0.88rem; color: #666; display: flex; align-items: center; gap: 8px; }
+        .access-card ul li i { color: #27ae60; font-size: 0.75rem; }
+        .btn-access { border-radius: 25px; padding: 12px 30px; font-weight: 700; font-size: 0.9rem; border: none; transition: all 0.3s; width: 100%; }
+        .btn-access:hover { transform: scale(1.03); }
+
+        /* FONCTIONNALITES */
+        .features-section { background: #2c3e50; padding: 80px 40px; }
+        .features-section h2 { color: white; text-align: center; font-size: 2rem; font-weight: 800; margin-bottom: 10px; }
+        .features-section .subtitle { color: rgba(255,255,255,0.6); text-align: center; margin-bottom: 50px; }
+        .feature-item { text-align: center; padding: 30px 20px; }
+        .feature-icon { width: 60px; height: 60px; border-radius: 15px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; transition: all 0.3s; }
+        .feature-item:hover .feature-icon { background: #3498db; transform: scale(1.1); }
+        .feature-icon i { font-size: 1.5rem; color: #3498db; }
+        .feature-item:hover .feature-icon i { color: white; }
+        .feature-item h6 { color: white; font-weight: 700; margin-bottom: 8px; }
+        .feature-item p { color: rgba(255,255,255,0.6); font-size: 0.82rem; line-height: 1.6; }
+
+        /* FOOTER */
+        .footer { background: #1a252f; color: rgba(255,255,255,0.7); padding: 25px 40px; }
+        .footer-brand { color: white; font-weight: 700; }
+
+        /* FLOATING ANIMATION */
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .floating { animation: float 3s ease-in-out infinite; }
+
+        /* COUNTER ANIMATION */
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+        .animate-up { animation: fadeInUp 0.8s ease-out forwards; }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2rem; }
+            .top-nav { padding: 12px 20px; }
+            .hero-content { padding: 20px; }
+            .access-section, .features-section { padding: 50px 20px; }
+            .stat-divider { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+    <!-- Navbar -->
+    <div class="top-nav">
+        <div class="brand">
+            <i class="fas fa-graduation-cap"></i>
+            UFR Sciences de l'Ingenieur — Universite de Thies
+        </div>
+        <div class="nav-links">
+            <a href="{% url 'catalogue' %}" class="btn btn-outline-light btn-sm" style="border-radius:20px">
+                <i class="fas fa-eye"></i> Catalogue
+            </a>
+            <a href="{% url 'connexion' %}" class="btn btn-outline-light btn-sm" style="border-radius:20px">
+                <i class="fas fa-sign-in-alt"></i> Connexion
+            </a>
+        </div>
+    </div>
+
+    <!-- Contenu hero -->
+    <div class="hero-content">
+        <div class="hero-left animate-up">
+            <div class="hero-badge">
+                <i class="fas fa-satellite-dish me-2"></i> Systeme de gestion intelligent
+            </div>
+            <h1 class="hero-title">
+                Gestion des Emprunts<br>de <span>Materiels</span><br>Topographiques
+            </h1>
+            <p class="hero-subtitle">
+                Plateforme numerique de gestion des emprunts de materiel topographique.
+                Reservez, suivez et restituez vos equipements en toute simplicite.
+            </p>
+            <div class="hero-btns">
+                <a href="{% url 'connexion' %}" class="btn-hero-primary">
+                    <i class="fas fa-user-graduate"></i> Espace Etudiant
+                </a>
+                <a href="{% url 'connexion_admin' %}" class="btn-hero-secondary">
+                    <i class="fas fa-shield-alt"></i> Espace Admin
+                </a>
+            </div>
+
+            <!-- Stats temps reel -->
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="num" id="count-materiels">{{ total_materiels }}</div>
+                    <div class="lbl">Materiels</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="num" id="count-dispo">{{ materiels_disponibles }}</div>
+                    <div class="lbl">Disponibles</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="num" id="count-users">{{ total_utilisateurs }}</div>
+                    <div class="lbl">Utilisateurs</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="num" id="count-demandes">{{ total_demandes }}</div>
+                    <div class="lbl">Demandes</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CARTES ACCES -->
+<div class="access-section">
+    <div class="section-title">
+        <h2>Choisissez votre espace</h2>
+        <p>Deux portails adaptes a vos besoins</p>
+    </div>
+    <div class="container">
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-5">
+                <div class="access-card">
+                    <div class="card-header-custom" style="background:linear-gradient(135deg,#2c3e50,#3498db)">
+                        <div class="icon-wrap" style="background:rgba(255,255,255,0.2)">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h4 style="color:white">Espace Administrateur</h4>
+                        <p style="color:rgba(255,255,255,0.8);font-size:0.88rem">Gestion complete du systeme</p>
+                    </div>
+                    <div class="card-body">
+                        <ul>
+                            <li><i class="fas fa-check-circle"></i> Gestion du catalogue materiels</li>
+                            <li><i class="fas fa-check-circle"></i> Validation des demandes d'emprunt</li>
+                            <li><i class="fas fa-check-circle"></i> Suivi de la maintenance</li>
+                            <li><i class="fas fa-check-circle"></i> Dashboard et statistiques avancees</li>
+                            <li><i class="fas fa-check-circle"></i> Carte de localisation en temps reel</li>
+                            <li><i class="fas fa-check-circle"></i> Exports PDF et Excel</li>
+                            <li><i class="fas fa-check-circle"></i> Journal d'activite complet</li>
+                        </ul>
+                        <a href="{% url 'connexion_admin' %}" class="btn btn-access text-white" style="background:linear-gradient(135deg,#2c3e50,#3498db)">
+                            <i class="fas fa-sign-in-alt me-2"></i> Acces Administrateur
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="access-card">
+                    <div class="card-header-custom" style="background:linear-gradient(135deg,#27ae60,#1e8449)">
+                        <div class="icon-wrap" style="background:rgba(255,255,255,0.2)">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <h4 style="color:white">Espace Etudiant</h4>
+                        <p style="color:rgba(255,255,255,0.8);font-size:0.88rem">Emprunts simples et rapides</p>
+                    </div>
+                    <div class="card-body">
+                        <ul>
+                            <li><i class="fas fa-check-circle"></i> Consultation du catalogue en ligne</li>
+                            <li><i class="fas fa-check-circle"></i> Reservation avec calendrier intelligent</li>
+                            <li><i class="fas fa-check-circle"></i> Suivi des demandes en temps reel</li>
+                            <li><i class="fas fa-check-circle"></i> Signalement de pannes sur le terrain</li>
+                            <li><i class="fas fa-check-circle"></i> Localisation GPS du lieu d'utilisation</li>
+                            <li><i class="fas fa-check-circle"></i> Assistant IA integre</li>
+                            <li><i class="fas fa-check-circle"></i> Bon de sortie PDF</li>
+                        </ul>
+                        <a href="{% url 'connexion' %}" class="btn btn-access text-white" style="background:linear-gradient(135deg,#27ae60,#1e8449)">
+                            <i class="fas fa-sign-in-alt me-2"></i> Connexion / Inscription
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FONCTIONNALITES -->
+<div class="features-section">
+    <h2>Fonctionnalites cles</h2>
+    <p class="subtitle">Tout ce dont vous avez besoin pour gerer vos emprunts</p>
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-6 col-md-3">
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-calendar-check"></i></div>
+                    <h6>Reservations intelligentes</h6>
+                    <p>Calendrier avec verification automatique des conflits de dates</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-robot"></i></div>
+                    <h6>Assistant IA</h6>
+                    <p>Diagnostic de pannes et recommandations materiels par Llama 3</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <h6>Geolocalisation</h6>
+                    <p>Carte interactive des materiels en cours d'utilisation sur le terrain</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <h6>Statistiques avancees</h6>
+                    <p>Dashboard avec graphiques d'evolution et indicateurs cles</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-file-pdf"></i></div>
+                    <h6>Exports documents</h6>
+                    <p>Rapports PDF et Excel complets pour l'administration</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-history"></i></div>
+                    <h6>Journal d'activite</h6>
+                    <p>Traçabilite complete de toutes les actions du systeme</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+                    <h6>100% Responsive</h6>
+                    <p>Interface optimisee pour mobile — parfait sur le terrain</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-tools"></i></div>
+                    <h6>Gestion maintenance</h6>
+                    <p>Signalement et suivi des pannes avec notification automatique</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="footer-brand">
+            <i class="fas fa-graduation-cap me-2"></i>
+            UFR Sciences de l'Ingenieur — Universite de Thies
+        </div>
+        <div style="font-size:0.85rem">
+            <i class="fas fa-envelope me-2"></i> ufr-si@univ-thies.sn
+            <span class="mx-3">|</span>
+            <i class="fas fa-phone me-2"></i> +221 33 951 12 34
+            <span class="mx-3">|</span>
+            <i class="fas fa-copyright me-1"></i> 2026
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Animation compteur
+function animateCounter(el, target) {
+    let current = 0;
+    const step = Math.ceil(target / 40);
+    const timer = setInterval(() => {
+        current += step;
+        if (current >= target) { current = target; clearInterval(timer); }
+        el.textContent = current;
+    }, 30);
+}
+
+window.addEventListener('load', () => {
+    animateCounter(document.getElementById('count-materiels'), {{ total_materiels }});
+    animateCounter(document.getElementById('count-dispo'), {{ materiels_disponibles }});
+    animateCounter(document.getElementById('count-users'), {{ total_utilisateurs }});
+    animateCounter(document.getElementById('count-demandes'), {{ total_demandes }});
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalogue du Matériel - UFR Sciences</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">UFR Sciences de l'Ingénieur</a>
+            <span class="text-white">Espace Étudiant</span>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">MENU</div>
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="list-group-item active">Catalogue</a>
+                        <a href="#" class="list-group-item">Nouvelle demande</a>
+                        <a href="#" class="list-group-item">Mes demandes</a>
+                        <a href="#" class="list-group-item">Assistant IA</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-9">
+                <h2 class="mb-4">Catalogue du matériel</h2>
+
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="Rechercher un matériel...">
+                    <select class="form-select w-25">
+                        <option>Toutes les catégories</option>
+                    </select>
+                </div>
+
+                <div class="row">
+                    <!-- Liste du matériel à afficher ici -->
+                    <div class="alert alert-info">Aucun matériel disponible pour le moment.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

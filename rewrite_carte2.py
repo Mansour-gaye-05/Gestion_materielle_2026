@@ -1,0 +1,89 @@
+﻿with open('templates/carte_materiels.html', 'w', encoding='utf-8') as f:
+    f.write("""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Carte des materiels empruntes</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { background: #f0f2f5; margin: 0; }
+        .navbar-custom { background: #2c3e50; }
+        #map { height: 550px; width: 100%; border-radius: 12px; }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-dark navbar-custom px-3 py-2">
+    <span class="navbar-brand fw-bold"><i class="fas fa-map-marker-alt"></i> Carte des materiels empruntes</span>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-light btn-sm">
+        <i class="fas fa-arrow-left"></i> Retour Dashboard
+    </a>
+</nav>
+
+<div class="container-fluid p-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm p-2">
+                <div id="map"></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3">
+                <h6 class="fw-bold mb-3">
+                    <i class="fas fa-list"></i> Materiels en cours
+                    <span class="badge bg-primary ms-2">{{ emplacements|length }}</span>
+                </h6>
+                {% for e in emplacements %}
+                <div class="border-bottom pb-2 mb-2">
+                    <strong><i class="fas fa-user text-primary"></i> {{ e.demande.utilisateur.username }}</strong><br>
+                    {% for ligne in e.demande.lignes.all %}
+                        <small><i class="fas fa-box text-secondary"></i> {{ ligne.materiel.nom }}</small><br>
+                    {% endfor %}
+                    <small class="text-muted">
+                        <i class="fas fa-map-marker-alt text-danger"></i> {{ e.adresse }}<br>
+                        <i class="fas fa-calendar"></i> {{ e.demande.date_debut|date:"d/m/Y" }} — {{ e.demande.date_fin|date:"d/m/Y" }}
+                    </small>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center py-3"><i class="fas fa-inbox fa-2x d-block mb-2"></i>Aucun materiel en cours</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+var points = {{ points_json|safe }};
+
+var map = L.map('map').setView([14.791, -16.935], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap',
+    maxZoom: 19
+}).addTo(map);
+
+points.forEach(function(p) {
+    var marker = L.marker([p.lat, p.lng]);
+    marker.bindPopup(
+        '<div style="font-size:13px;line-height:1.8">' +
+        '<b><i class="fas fa-user"></i> ' + p.etudiant + '</b><br>' +
+        '<i class="fas fa-box"></i> ' + p.materiel + '<br>' +
+        '<i class="fas fa-map-marker-alt"></i> ' + (p.adresse || 'Non renseigne') + '<br>' +
+        '<i class="fas fa-calendar"></i> ' + p.date_debut + ' au ' + p.date_fin +
+        '</div>'
+    ).addTo(map);
+});
+
+if (points.length === 1) {
+    map.setView([points[0].lat, points[0].lng], 15);
+} else if (points.length > 1) {
+    var bounds = points.map(function(p) { return [p.lat, p.lng]; });
+    map.fitBounds(bounds, {padding: [40, 40], maxZoom: 15});
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>""")
+print('carte_materiels.html reecrit!')
