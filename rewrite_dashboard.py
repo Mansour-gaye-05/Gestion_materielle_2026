@@ -1,0 +1,426 @@
+﻿with open('templates/dashboard.html', 'r', encoding='utf-8') as f:
+    old = f.read()
+
+# Extraire les donnees Chart.js
+import re
+charts = re.findall(r'new Chart\(.*?\}\);', old, re.DOTALL)
+charts_js = '\n'.join(charts)
+
+with open('templates/dashboard.html', 'w', encoding='utf-8') as f:
+    f.write("""<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - UFR Sciences</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --primary-dark: #1a252f;
+            --primary-light: #3d5166;
+            --accent: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --sidebar-w: 240px;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f0f2f5; margin: 0; overflow-x: hidden; }
+        h1,h2,h3,h4,h5,h6,.fw-bold,.navbar-brand { font-family: 'Manrope', sans-serif; }
+
+        /* SIDEBAR */
+        .sidebar { width: var(--sidebar-w); background: var(--primary); position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 1000; display: flex; flex-direction: column; }
+        .sidebar::-webkit-scrollbar { width: 3px; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        .sidebar-brand { padding: 20px 16px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .sidebar-brand .brand-icon { width: 36px; height: 36px; background: rgba(255,255,255,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .sidebar-brand .brand-text { color: white; font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 0.95rem; line-height: 1.2; }
+        .sidebar-brand .brand-sub { color: rgba(255,255,255,0.5); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; }
+        .sidebar-section { padding: 16px 16px 4px; color: rgba(255,255,255,0.4); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; font-family: 'Inter', sans-serif; }
+        .sidebar-link { display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: rgba(255,255,255,0.75); text-decoration: none; font-size: 0.85rem; font-weight: 500; border-left: 3px solid transparent; transition: all 0.2s; margin: 1px 0; }
+        .sidebar-link:hover { background: rgba(255,255,255,0.08); color: white; border-left-color: var(--accent); }
+        .sidebar-link.active { background: rgba(255,255,255,0.12); color: white; border-left-color: var(--accent); }
+        .sidebar-link i { width: 18px; text-align: center; font-size: 0.85rem; }
+        .sidebar-divider { border-color: rgba(255,255,255,0.08); margin: 6px 0; }
+        .sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 10px; }
+        .sidebar-footer .avatar { width: 36px; height: 36px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.9rem; }
+        .sidebar-footer .user-info { color: white; font-size: 0.82rem; font-weight: 600; }
+        .sidebar-footer .user-role { color: rgba(255,255,255,0.5); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* TOPBAR */
+        .topbar { position: fixed; top: 0; left: var(--sidebar-w); right: 0; height: 56px; background: white; border-bottom: 1px solid #e8eaed; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 999; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .topbar-title { font-family: 'Manrope', sans-serif; font-weight: 800; color: var(--primary); font-size: 1rem; }
+        .topbar-actions { display: flex; align-items: center; gap: 12px; }
+        .notif-bell { position: relative; }
+        .notif-badge { position: absolute; top: -4px; right: -4px; background: var(--danger); color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .notif-dropdown { position: absolute; right: 0; top: 36px; width: 300px; background: white; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 9999; display: none; border: 1px solid #e8eaed; }
+        .notif-dropdown.open { display: block; }
+        .notif-dropdown-header { padding: 12px 16px; background: var(--primary); color: white; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 700; }
+        .notif-item-dd { padding: 10px 16px; border-bottom: 1px solid #f0f0f0; font-size: 0.78rem; }
+        .notif-item-dd.unread { border-left: 3px solid var(--danger); background: #fff8f8; }
+        .notif-empty { padding: 20px; text-align: center; color: #999; font-size: 0.8rem; }
+        .btn-icon { width: 36px; height: 36px; border-radius: 8px; border: 1px solid #e8eaed; background: white; display: flex; align-items: center; justify-content: center; color: #666; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; }
+        .btn-icon:hover { background: #f0f2f5; color: var(--primary); }
+
+        /* MAIN */
+        .main-content { margin-left: var(--sidebar-w); margin-top: 56px; padding: 24px; }
+
+        /* STAT CARDS */
+        .stat-card { border-radius: 16px; padding: 20px; position: relative; overflow: hidden; border: none; }
+        .stat-card .stat-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 2.5rem; opacity: 0.15; }
+        .stat-card .stat-val { font-family: 'Manrope', sans-serif; font-size: 2rem; font-weight: 800; color: white; margin: 0; }
+        .stat-card .stat-lbl { font-size: 0.75rem; color: rgba(255,255,255,0.8); margin: 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* KPI CARDS */
+        .kpi-card { background: white; border-radius: 12px; padding: 18px 20px; border: none; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .kpi-val { font-family: 'Manrope', sans-serif; font-size: 1.8rem; font-weight: 800; }
+        .kpi-lbl { font-size: 0.75rem; color: #888; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* CHART CARDS */
+        .chart-card { background: white; border-radius: 16px; padding: 20px; border: none; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .chart-title { font-family: 'Manrope', sans-serif; font-weight: 700; color: var(--primary); font-size: 0.9rem; border-left: 3px solid var(--primary); padding-left: 10px; margin-bottom: 16px; }
+
+        /* TABLE */
+        .data-table { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .data-table thead th { background: var(--primary); color: white; font-family: 'Inter', sans-serif; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; padding: 12px 16px; border: none; }
+        .data-table tbody td { padding: 12px 16px; border-bottom: 1px solid #f5f5f5; font-size: 0.85rem; vertical-align: middle; }
+        .data-table tbody tr:hover { background: #f8f9fa; }
+        .data-table tbody tr:last-child td { border-bottom: none; }
+
+        /* BADGES */
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* MOBILE TOGGLE */
+        .sidebar-toggle { display: none; }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+        .sidebar-overlay.open { display: block; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+            .sidebar.open { transform: translateX(0); }
+            .topbar { left: 0; }
+            .main-content { margin-left: 0; padding: 16px; }
+            .sidebar-toggle { display: flex; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon"><i class="fas fa-chart-line" style="color:white"></i></div>
+        <div>
+            <div class="brand-text">UFR Sciences</div>
+            <div class="brand-sub">Administration</div>
+        </div>
+    </div>
+
+    <div class="sidebar-section">Principal</div>
+    <a href="{% url 'dashboard' %}" class="sidebar-link active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="{% url 'journal_activite' %}" class="sidebar-link"><i class="fas fa-history"></i> Journal d'activite</a>
+
+    <hr class="sidebar-divider">
+    <div class="sidebar-section">Materiels</div>
+    <a href="{% url 'catalogue' %}" class="sidebar-link"><i class="fas fa-eye"></i> Voir le catalogue</a>
+    <a href="{% url 'gestion_catalogue' %}" class="sidebar-link"><i class="fas fa-boxes"></i> Gerer catalogue</a>
+    <a href="{% url 'carte_materiels' %}" class="sidebar-link"><i class="fas fa-map-marker-alt"></i> Carte materiels</a>
+
+    <hr class="sidebar-divider">
+    <div class="sidebar-section">Emprunts</div>
+    <a href="{% url 'gestion_demandes' %}" class="sidebar-link"><i class="fas fa-clipboard-list"></i> Demandes
+        {% if demandes_en_attente > 0 %}<span class="ms-auto badge" style="background:var(--danger);font-size:0.65rem">{{ demandes_en_attente }}</span>{% endif %}
+    </a>
+    <a href="{% url 'gestion_maintenance' %}" class="sidebar-link"><i class="fas fa-tools"></i> Maintenance</a>
+
+    <hr class="sidebar-divider">
+    <div class="sidebar-section">Utilisateurs</div>
+    <a href="{% url 'gestion_utilisateurs' %}" class="sidebar-link"><i class="fas fa-users"></i> Utilisateurs</a>
+    <a href="/admin/" class="sidebar-link"><i class="fas fa-cog"></i> Admin Django</a>
+
+    <hr class="sidebar-divider">
+    <div class="sidebar-section">Exports</div>
+    <a href="{% url 'export_excel' %}" class="sidebar-link"><i class="fas fa-file-excel" style="color:#27ae60"></i> Export Excel</a>
+    <a href="{% url 'export_pdf' %}" class="sidebar-link"><i class="fas fa-file-pdf" style="color:#e74c3c"></i> Export PDF</a>
+
+    <div class="sidebar-footer">
+        <div class="avatar">{{ user.username|first|upper }}</div>
+        <div>
+            <div class="user-info">{{ user.username }}</div>
+            <div class="user-role">Administrateur</div>
+        </div>
+    </div>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+    <div class="d-flex align-items-center gap-3">
+        <button class="btn-icon sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        <span class="topbar-title"><i class="fas fa-chart-line me-2"></i>Tableau de bord Administrateur</span>
+    </div>
+    <div class="topbar-actions">
+        <div class="notif-bell" onclick="toggleNotif()">
+            <div class="btn-icon">
+                <i class="fas fa-bell"></i>
+                <span class="notif-badge" id="notif-badge" style="display:none">0</span>
+            </div>
+            <div class="notif-dropdown" id="notifDropdown">
+                <div class="notif-dropdown-header">
+                    <span><i class="fas fa-bell"></i> Notifications</span>
+                    <span onclick="marquerLues(event)" style="cursor:pointer;opacity:0.8;font-size:0.72rem">Tout lire</span>
+                </div>
+                <div id="notif-list"><div class="notif-empty">Chargement...</div></div>
+            </div>
+        </div>
+        <a href="{% url 'deconnexion' %}" class="btn-icon text-danger" title="Deconnexion"><i class="fas fa-sign-out-alt"></i></a>
+    </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+
+    <!-- STAT CARDS -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-2">
+            <div class="stat-card" style="background:linear-gradient(135deg,#2c3e50,#4a6fa5)">
+                <i class="fas fa-microchip stat-icon"></i>
+                <p class="stat-lbl">Total Materiels</p>
+                <p class="stat-val">{{ total_materiels }}</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="stat-card" style="background:linear-gradient(135deg,#27ae60,#2ecc71)">
+                <i class="fas fa-check-circle stat-icon"></i>
+                <p class="stat-lbl">Disponibles</p>
+                <p class="stat-val">{{ materiels_disponibles }}</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="stat-card" style="background:linear-gradient(135deg,#e67e22,#f39c12)">
+                <i class="fas fa-hand-holding stat-icon"></i>
+                <p class="stat-lbl">Empruntes</p>
+                <p class="stat-val">{{ materiels_empruntes }}</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="stat-card" style="background:linear-gradient(135deg,#e74c3c,#c0392b)">
+                <i class="fas fa-wrench stat-icon"></i>
+                <p class="stat-lbl">Maintenance</p>
+                <p class="stat-val">{{ materiels_maintenance }}</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="stat-card" style="background:linear-gradient(135deg,#8e44ad,#9b59b6)">
+                <i class="fas fa-clock stat-icon"></i>
+                <p class="stat-lbl">En attente</p>
+                <p class="stat-val">{{ demandes_en_attente }}</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="stat-card" style="background:linear-gradient(135deg,#16a085,#1abc9c)">
+                <i class="fas fa-users stat-icon"></i>
+                <p class="stat-lbl">Utilisateurs</p>
+                <p class="stat-val">{{ total_utilisateurs }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-lbl">Taux utilisation</div>
+                <div class="kpi-val" style="color:#e67e22">{{ taux_utilisation }}%</div>
+                <div class="progress mt-2" style="height:5px;border-radius:3px">
+                    <div class="progress-bar bg-warning" style="width:{{ taux_utilisation }}%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-lbl">Duree moyenne emprunt</div>
+                <div class="kpi-val" style="color:var(--primary)">{{ duree_moyenne }}<span style="font-size:1rem;font-weight:500"> j</span></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-lbl">Emprunts (30 jours)</div>
+                <div class="kpi-val" style="color:#27ae60">{{ total_emprunts_jour }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-lbl">Retards actifs</div>
+                <div class="kpi-val" style="color:#e74c3c">{{ demandes_retard }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GRAPHIQUES ROW 1 -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-8">
+            <div class="chart-card">
+                <div class="chart-title">Evolution des emprunts (30 derniers jours)</div>
+                <div style="height:280px;position:relative"><canvas id="evolutionChart"></canvas></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-card">
+                <div class="chart-title">Statut des demandes</div>
+                <canvas id="statutChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- GRAPHIQUES ROW 2 -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="chart-card">
+                <div class="chart-title">Top 5 materiels empruntes</div>
+                <canvas id="topMaterielChart"></canvas>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-card">
+                <div class="chart-title">Demandes par filiere</div>
+                <canvas id="filiereChart"></canvas>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-card">
+                <div class="chart-title">Top 5 utilisateurs actifs</div>
+                <canvas id="topUsersChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- GRAPHIQUE + TABLE -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-5">
+            <div class="chart-card">
+                <div class="chart-title">Evolution mensuelle (12 mois)</div>
+                <canvas id="mensuelChart" height="140"></canvas>
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="data-table">
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background:white">
+                    <span style="font-family:Manrope;font-weight:700;color:var(--primary);font-size:0.9rem;border-left:3px solid var(--primary);padding-left:10px">Demandes recentes</span>
+                    <a href="{% url 'gestion_demandes' %}" class="btn btn-sm" style="background:var(--primary);color:white;border-radius:20px;font-size:0.75rem">Voir tout</a>
+                </div>
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th style="background:var(--primary);color:white;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;padding:10px 16px;border:none">#</th>
+                            <th style="background:var(--primary);color:white;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;padding:10px 16px;border:none">Etudiant</th>
+                            <th style="background:var(--primary);color:white;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;padding:10px 16px;border:none">Statut</th>
+                            <th style="background:var(--primary);color:white;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;padding:10px 16px;border:none">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in demandes_recentes %}
+                        <tr style="border-bottom:1px solid #f5f5f5">
+                            <td style="padding:10px 16px;font-size:0.82rem;font-weight:700;color:var(--primary)">#{{ d.id }}</td>
+                            <td style="padding:10px 16px;font-size:0.82rem">{{ d.utilisateur.username }}</td>
+                            <td style="padding:10px 16px">
+                                <span class="status-badge {% if d.statut == 'en_attente' %}bg-warning text-dark{% elif d.statut == 'approuvee' %}bg-success text-white{% elif d.statut == 'refusee' %}bg-danger text-white{% elif d.statut == 'en_cours' %}bg-info text-white{% else %}bg-secondary text-white{% endif %}">
+                                    {{ d.get_statut_display }}
+                                </span>
+                            </td>
+                            <td style="padding:10px 16px">
+                                <a href="{% url 'valider_demande' d.id %}" class="btn btn-sm" style="background:var(--primary);color:white;border-radius:20px;font-size:0.72rem;padding:3px 12px">Traiter</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const COLORS = ['#2c3e50','#3498db','#27ae60','#e67e22','#e74c3c','#9b59b6','#1abc9c','#f39c12'];
+
+new Chart(document.getElementById('evolutionChart'), {
+    type: 'line',
+    data: {
+        labels: {{ jours_labels|safe }},
+        datasets: [
+            { label: 'Valides', data: {{ emprunts_valides_jour|safe }}, borderColor: '#2c3e50', backgroundColor: 'rgba(44,62,80,0.08)', fill: true, tension: 0.4, pointRadius: 3, pointBackgroundColor: '#2c3e50', borderWidth: 2 },
+            { label: 'En cours', data: {{ emprunts_encours_jour|safe }}, borderColor: '#e67e22', backgroundColor: 'rgba(230,126,34,0.05)', fill: false, tension: 0.4, pointRadius: 3, pointBackgroundColor: '#e67e22', borderWidth: 2 }
+        ]
+    },
+    options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { font: { family: 'Inter', size: 11 }, usePointStyle: true } },
+        tooltip: { mode: 'index', intersect: false } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Inter', size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+        x: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 9 }, maxRotation: 45 } } }
+    }
+});
+
+new Chart(document.getElementById('statutChart'), {
+    type: 'doughnut',
+    data: { labels: ['En attente','Approuvee','En cours','Restituee','Refusee','Retard'],
+        datasets: [{ data: {{ statuts_data|safe }}, backgroundColor: ['#f39c12','#27ae60','#3498db','#95a5a6','#e74c3c','#c0392b'], borderWidth: 0 }] },
+    options: { responsive: true, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 10 }, padding: 8, usePointStyle: true } } } }
+});
+
+new Chart(document.getElementById('topMaterielChart'), {
+    type: 'bar',
+    data: { labels: {{ top_mat_labels|safe }}, datasets: [{ data: {{ top_mat_data|safe }}, backgroundColor: COLORS, borderRadius: 6, borderSkipped: false }] },
+    options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { font: { family: 'Inter', size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } }, y: { ticks: { font: { family: 'Inter', size: 9 } }, grid: { display: false } } } }
+});
+
+new Chart(document.getElementById('filiereChart'), {
+    type: 'pie',
+    data: { labels: {{ filiere_labels|safe }}, datasets: [{ data: {{ filiere_data|safe }}, backgroundColor: COLORS, borderWidth: 0 }] },
+    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 10 }, padding: 8, usePointStyle: true } } } }
+});
+
+new Chart(document.getElementById('topUsersChart'), {
+    type: 'bar',
+    data: { labels: {{ top_users_labels|safe }}, datasets: [{ data: {{ top_users_data|safe }}, backgroundColor: '#3498db', borderRadius: 6, borderSkipped: false }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { font: { family: 'Inter', size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { ticks: { font: { family: 'Inter', size: 9 } }, grid: { display: false } } } }
+});
+
+new Chart(document.getElementById('mensuelChart'), {
+    type: 'bar',
+    data: { labels: {{ mois_labels|safe }}, datasets: [{ data: {{ mois_data|safe }}, backgroundColor: 'rgba(44,62,80,0.75)', borderRadius: 6, borderSkipped: false }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { font: { family: 'Inter', size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { ticks: { font: { family: 'Inter', size: 9 } }, grid: { display: false } } } }
+});
+
+function getCookie(name) {
+    let v = null;
+    document.cookie.split(';').forEach(c => { c = c.trim(); if (c.startsWith(name + '=')) v = decodeURIComponent(c.substring(name.length + 1)); });
+    return v;
+}
+async function fetchNotifications() {
+    try {
+        const r = await fetch('/notifications/admin/');
+        const data = await r.json();
+        const badge = document.getElementById('notif-badge');
+        const list = document.getElementById('notif-list');
+        if (data.count > 0) { badge.style.display = 'flex'; badge.textContent = data.count > 9 ? '9+' : data.count; } else { badge.style.display = 'none'; }
+        if (data.notifications.length === 0) { list.innerHTML = '<div class="notif-empty">Aucune notification</div>'; }
+        else { list.innerHTML = data.notifications.map(n => '<div class="notif-item-dd ' + (!n.lu ? 'unread' : '') + '"><div style="font-size:0.7rem;color:#999">' + n.date + '</div><div>' + n.message.substring(0,80) + '</div></div>').join(''); }
+    } catch(e) {}
+}
+function toggleNotif() { const dd = document.getElementById('notifDropdown'); dd.classList.toggle('open'); if (dd.classList.contains('open')) fetchNotifications(); }
+async function marquerLues(e) { e.stopPropagation(); await fetch('/notifications/admin/lues/', { method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken') } }); document.getElementById('notif-badge').style.display = 'none'; fetchNotifications(); }
+document.addEventListener('click', function(e) { const bell = document.querySelector('.notif-bell'); if (bell && !bell.contains(e.target)) document.getElementById('notifDropdown').classList.remove('open'); });
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('open'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open'); }
+fetchNotifications();
+setInterval(fetchNotifications, 30000);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>""")
+print('Dashboard reecrit!')

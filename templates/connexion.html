@@ -1,28 +1,163 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion - UFR Sciences</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Cercles decoratifs */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(52,152,219,0.15) 0%, transparent 70%);
+            top: -200px; right: -200px;
+            border-radius: 50%;
+        }
+        body::after {
+            content: '';
+            position: absolute;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(44,62,80,0.3) 0%, transparent 70%);
+            bottom: -100px; left: -100px;
+            border-radius: 50%;
+        }
+        .login-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+            position: relative;
+            z-index: 1;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        .login-logo {
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, #3498db, #2c3e50);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 20px rgba(52,152,219,0.3);
+        }
+        .login-logo i { font-size: 1.8rem; color: white; }
+        .login-title { font-family: 'Manrope', sans-serif; font-weight: 800; color: white; font-size: 1.6rem; text-align: center; margin-bottom: 6px; }
+        .login-subtitle { color: rgba(255,255,255,0.55); font-size: 0.85rem; text-align: center; margin-bottom: 30px; }
+        .form-label { color: rgba(255,255,255,0.8); font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; }
+        .form-control {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
+            color: white;
+            padding: 12px 16px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .form-control:focus {
+            background: rgba(255,255,255,0.12);
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
+            color: white;
+        }
+        .form-control::placeholder { color: rgba(255,255,255,0.3); }
+        .input-icon { position: relative; }
+        .input-icon i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4); font-size: 0.85rem; }
+        .input-icon .form-control { padding-left: 38px; }
+        .btn-login {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 13px;
+            width: 100%;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+            margin-top: 8px;
+        }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(52,152,219,0.4); color: white; }
+        .btn-login:active { transform: translateY(0); }
+        .alert { border-radius: 12px; font-size: 0.83rem; background: rgba(231,76,60,0.2); border: 1px solid rgba(231,76,60,0.3); color: #e74c3c; }
+        .divider { border-color: rgba(255,255,255,0.1); margin: 20px 0; }
+        .link-bottom { text-align: center; color: rgba(255,255,255,0.55); font-size: 0.82rem; }
+        .link-bottom a { color: #3498db; font-weight: 600; text-decoration: none; }
+        .link-bottom a:hover { color: #5dade2; }
+        .admin-link { display: block; text-align: center; margin-top: 12px; color: rgba(255,255,255,0.3); font-size: 0.75rem; text-decoration: none; transition: color 0.2s; }
+        .admin-link:hover { color: rgba(255,255,255,0.6); }
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        .floating { animation: float 3s ease-in-out infinite; }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-4">
-            <h2 class="text-center mb-4">Connexion</h2>
-            <form method="post">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label>Nom d'utilisateur</label>
-                    <input type="text" name="username" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label>Mot de passe</label>
-                    <input type="password" name="password" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn-primary w-100">Se connecter</button>
-            </form>
-        </div>
+<div class="login-card">
+    <div class="login-logo floating">
+        <i class="fas fa-graduation-cap"></i>
     </div>
+    <h1 class="login-title">Bon retour !</h1>
+    <p class="login-subtitle">UFR Sciences de l'Ingenieur ? Universite de Thies</p>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert mb-3"><i class="fas fa-exclamation-circle me-2"></i>{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Nom d'utilisateur</label>
+            <div class="input-icon">
+                <i class="fas fa-user"></i>
+                <input type="text" name="username" class="form-control" placeholder="Votre identifiant" required autofocus>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Mot de passe</label>
+            <div class="input-icon">
+                <i class="fas fa-lock"></i>
+                <div class="input-group">
+                            <input type="password" name="password" id="password" class="form-control" placeholder="Votre mot de passe" required>
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePwd(this)" tabindex="-1" style="border-radius:0 8px 8px 0">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+            </div>
+        </div>
+        <button type="submit" class="btn-login">
+            <i class="fas fa-sign-in-alt me-2"></i> Se connecter
+        </button>
+    </form>
+
+    <hr class="divider">
+    <p class="link-bottom">
+        <a href="{% url 'mot_de_passe_oublie' %}" style="color:rgba(255,255,255,0.4);font-size:0.78rem">Mot de passe oublie ?</a><br><br>Pas encore de compte ? <a href="{% url 'inscription' %}">S'inscrire</a>
+    </p>
+    <a href="{% url 'connexion_admin' %}" class="admin-link">
+        <i class="fas fa-shield-alt me-1"></i> Acces Administrateur
+    </a>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/animations.js' %}"></script>
 </body>
 </html>

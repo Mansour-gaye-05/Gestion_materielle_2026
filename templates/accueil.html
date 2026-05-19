@@ -99,7 +99,52 @@
             .access-section, .features-section { padding: 50px 20px; }
             .stat-divider { display: none; }
         }
+
+        /* ANIMATIONS */
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeInLeft { from { opacity:0; transform:translateX(-30px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes fadeInRight { from { opacity:0; transform:translateX(30px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        @keyframes scaleIn { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }
+        @keyframes slideDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes pulse-soft { 0%,100% { transform:scale(1); } 50% { transform:scale(1.05); } }
+        @keyframes shimmer { 0% { background-position:-200% center; } 100% { background-position:200% center; } }
+
+        .anim-fade-up { opacity:0; animation: fadeInUp 0.8s ease forwards; }
+        .anim-fade-left { opacity:0; animation: fadeInLeft 0.8s ease forwards; }
+        .anim-fade-right { opacity:0; animation: fadeInRight 0.8s ease forwards; }
+        .anim-fade { opacity:0; animation: fadeIn 0.8s ease forwards; }
+        .anim-scale { opacity:0; animation: scaleIn 0.6s ease forwards; }
+        .anim-slide-down { opacity:0; animation: slideDown 0.6s ease forwards; }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+        .delay-6 { animation-delay: 0.6s; }
+        .delay-7 { animation-delay: 0.7s; }
+        .delay-8 { animation-delay: 0.8s; }
+
+        /* HOVER EFFECTS */
+        .access-card { transition: transform 0.3s ease, box-shadow 0.3s ease !important; }
+        .access-card:hover { transform: translateY(-8px) !important; box-shadow: 0 25px 60px rgba(0,0,0,0.2) !important; }
+        .feature-item { transition: transform 0.3s ease; }
+        .feature-item:hover { transform: translateY(-5px); }
+        .btn-hero-primary, .btn-hero-secondary { transition: all 0.3s ease !important; }
+
+        /* SHIMMER sur les stats */
+        .stat-num { background: linear-gradient(90deg, white 0%, rgba(255,255,255,0.6) 50%, white 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite; }
+
+        /* SCROLL REVEAL */
+        .reveal { opacity:0; transform:translateY(40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+        .reveal.visible { opacity:1; transform:translateY(0); }
+        .reveal-left { opacity:0; transform:translateX(-40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+        .reveal-left.visible { opacity:1; transform:translateX(0); }
+        .reveal-right { opacity:0; transform:translateX(40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+        .reveal-right.visible { opacity:1; transform:translateX(0); }
     </style>
+<link rel="stylesheet" href="{% static 'css/animations.css' %}">
 </head>
 <body>
 
@@ -124,17 +169,17 @@
     <!-- Contenu hero -->
     <div class="hero-content">
         <div class="hero-left animate-up">
-            <div class="hero-badge">
+            <div class="hero-badge anim-slide-down delay-1">
                 <i class="fas fa-satellite-dish me-2"></i> Systeme de gestion intelligent
             </div>
-            <h1 class="hero-title">
+            <h1 class="hero-title anim-fade-up delay-2">
                 Gestion des Emprunts<br>de <span>Materiels</span><br>Topographiques
             </h1>
-            <p class="hero-subtitle">
+            <p class="hero-subtitle anim-fade-up delay-3">
                 Plateforme numerique de gestion des emprunts de materiel topographique.
                 Reservez, suivez et restituez vos equipements en toute simplicite.
             </p>
-            <div class="hero-btns">
+            <div class="hero-btns anim-fade-up delay-4">
                 <a href="{% url 'connexion' %}" class="btn-hero-primary">
                     <i class="fas fa-user-graduate"></i> Espace Etudiant
                 </a>
@@ -144,24 +189,24 @@
             </div>
 
             <!-- Stats temps reel -->
-            <div class="hero-stats">
+            <div class="hero-stats anim-fade-up delay-5">
                 <div class="stat-item">
-                    <div class="num" id="count-materiels">{{ total_materiels }}</div>
+                    <div class="num stat-num" id="count-materiels">{{ total_materiels }}</div>
                     <div class="lbl">Materiels</div>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-item">
-                    <div class="num" id="count-dispo">{{ materiels_disponibles }}</div>
+                    <div class="num stat-num" id="count-dispo">{{ materiels_disponibles }}</div>
                     <div class="lbl">Disponibles</div>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-item">
-                    <div class="num" id="count-users">{{ total_utilisateurs }}</div>
+                    <div class="num stat-num" id="count-users">{{ total_utilisateurs }}</div>
                     <div class="lbl">Utilisateurs</div>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-item">
-                    <div class="num" id="count-demandes">{{ total_demandes }}</div>
+                    <div class="num stat-num" id="count-demandes">{{ total_demandes }}</div>
                     <div class="lbl">Demandes</div>
                 </div>
             </div>
@@ -171,7 +216,7 @@
 
 <!-- CARTES ACCES -->
 <div class="access-section">
-    <div class="section-title">
+    <div class="section-title reveal">
         <h2>Choisissez votre espace</h2>
         <p>Deux portails adaptes a vos besoins</p>
     </div>
@@ -221,9 +266,14 @@
                             <li><i class="fas fa-check-circle"></i> Assistant IA integre</li>
                             <li><i class="fas fa-check-circle"></i> Bon de sortie PDF</li>
                         </ul>
-                        <a href="{% url 'connexion' %}" class="btn btn-access text-white" style="background:linear-gradient(135deg,#27ae60,#1e8449)">
-                            <i class="fas fa-sign-in-alt me-2"></i> Connexion / Inscription
-                        </a>
+                        <div class="d-flex gap-2">
+                    <a href="{% url 'connexion' %}" class="btn btn-access text-white" style="background:linear-gradient(135deg,#27ae60,#1e8449);width:50%">
+                        <i class="fas fa-sign-in-alt me-2"></i> Connexion
+                    </a>
+                    <a href="{% url 'inscription' %}" class="btn btn-access text-white" style="background:linear-gradient(135deg,#8e44ad,#6c3483);width:50%">
+                        <i class="fas fa-user-plus me-2"></i> S'inscrire
+                    </a>
+                </div>
                     </div>
                 </div>
             </div>
@@ -238,56 +288,56 @@
     <div class="container">
         <div class="row g-4">
             <div class="col-6 col-md-3">
-                <div class="feature-item">
+                <div class="feature-item reveal">
                     <div class="feature-icon"><i class="fas fa-calendar-check"></i></div>
                     <h6>Reservations intelligentes</h6>
                     <p>Calendrier avec verification automatique des conflits de dates</p>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="feature-item">
+                <div class="feature-item reveal">
                     <div class="feature-icon"><i class="fas fa-robot"></i></div>
                     <h6>Assistant IA</h6>
                     <p>Diagnostic de pannes et recommandations materiels par Llama 3</p>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="feature-item">
+                <div class="feature-item reveal">
                     <div class="feature-icon"><i class="fas fa-map-marker-alt"></i></div>
                     <h6>Geolocalisation</h6>
                     <p>Carte interactive des materiels en cours d'utilisation sur le terrain</p>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="feature-item">
+                <div class="feature-item reveal">
                     <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
                     <h6>Statistiques avancees</h6>
                     <p>Dashboard avec graphiques d'evolution et indicateurs cles</p>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="feature-item">
+                <div class="feature-item reveal">
                     <div class="feature-icon"><i class="fas fa-file-pdf"></i></div>
                     <h6>Exports documents</h6>
                     <p>Rapports PDF et Excel complets pour l'administration</p>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="feature-item">
+                <div class="feature-item reveal">
                     <div class="feature-icon"><i class="fas fa-history"></i></div>
                     <h6>Journal d'activite</h6>
                     <p>Traçabilite complete de toutes les actions du systeme</p>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="feature-item">
+                <div class="feature-item reveal">
                     <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
                     <h6>100% Responsive</h6>
                     <p>Interface optimisee pour mobile — parfait sur le terrain</p>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="feature-item">
+                <div class="feature-item reveal">
                     <div class="feature-icon"><i class="fas fa-tools"></i></div>
                     <h6>Gestion maintenance</h6>
                     <p>Signalement et suivi des pannes avec notification automatique</p>
@@ -327,6 +377,19 @@ function animateCounter(el, target) {
     }, 30);
 }
 
+// SCROLL REVEAL
+const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+            setTimeout(() => entry.target.classList.add('visible'), i * 100);
+        }
+    });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => {
+    revealObserver.observe(el);
+});
+
 window.addEventListener('load', () => {
     animateCounter(document.getElementById('count-materiels'), {{ total_materiels }});
     animateCounter(document.getElementById('count-dispo'), {{ materiels_disponibles }});
@@ -334,5 +397,6 @@ window.addEventListener('load', () => {
     animateCounter(document.getElementById('count-demandes'), {{ total_demandes }});
 });
 </script>
+<script src="{% static 'js/animations.js' %}"></script>
 </body>
 </html>

@@ -1,3 +1,4 @@
+{% load static %}
 ﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -111,6 +112,7 @@
         @keyframes pulse-ring { 0% { transform: scale(.8); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
         .pulse-icon { position: relative; }
     </style>
+<link rel="stylesheet" href="{% static 'css/animations.css' %}">
 </head>
 <body>
 <nav class="navbar navbar-dark bg-custom">
@@ -202,12 +204,29 @@
                         <!-- Dates -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold"><i class="fas fa-calendar-alt me-1"></i> Date de début *</label>
+                                <label class="form-label fw-semibold"><i class="fas fa-calendar-alt me-1"></i> Date de debut *</label>
                                 <input type="date" name="date_debut" id="date_debut" class="form-control" required onchange="checkConflict()">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold"><i class="fas fa-clock me-1"></i> Heure de debut *</label>
+                                <input type="time" name="heure_debut" id="heure_debut" class="form-control" required value="08:00">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-semibold"><i class="fas fa-calendar-alt me-1"></i> Date de fin *</label>
                                 <input type="date" name="date_fin" id="date_fin" class="form-control" required onchange="checkConflict()">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold"><i class="fas fa-clock me-1"></i> Heure de fin *</label>
+                                <input type="time" name="heure_fin" id="heure_fin" class="form-control" required value="17:00">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold"><i class="fas fa-cubes me-1"></i> Quantite *</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm px-3" onclick="changeQte(-1)"><i class="fas fa-minus"></i></button>
+                                <input type="number" name="quantite" id="quantiteInput" class="form-control text-center fw-bold" value="1" min="1" max="10" readonly style="width:80px;font-size:1.2rem">
+                                <button type="button" class="btn btn-outline-secondary btn-sm px-3" onclick="changeQte(1)"><i class="fas fa-plus"></i></button>
+                                <small class="text-muted ms-2" id="qteDispoInfo"></small>
                             </div>
                         </div>
 
@@ -261,9 +280,14 @@
                             </small>
                         </div>
 
-                        <button type="submit" class="btn btn-custom w-100 py-2 mt-2" id="submitBtn" style="border-radius:10px;font-size:1rem">
-                            <i class="fas fa-paper-plane me-2"></i> Envoyer la demande
-                        </button>
+                        <div class="d-flex gap-2 mt-3">
+                            <a href="{% url 'espace_etudiant' %}" class="btn btn-outline-secondary w-50 py-2" style="border-radius:10px">
+                                <i class="fas fa-times me-2"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-custom w-50 py-2" id="submitBtn" style="border-radius:10px">
+                                <i class="fas fa-paper-plane me-2"></i> Envoyer
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -598,6 +622,20 @@ function hideConflict() {
     document.getElementById('submitBtn').disabled = false;
 }
 
+
+function changeQte(delta) {
+    const input = document.getElementById('quantiteInput');
+    const opt = document.getElementById('materielSelect').options[document.getElementById('materielSelect').selectedIndex];
+    const maxDispo = parseInt(opt.getAttribute('data-quantite')) || 10;
+    let val = Math.max(1, Math.min(parseInt(input.value) + delta, maxDispo));
+    input.value = val;
+}
+document.getElementById('materielSelect').addEventListener('change', function() {
+    const dispo = this.options[this.selectedIndex].getAttribute('data-quantite');
+    document.getElementById('quantiteInput').value = 1;
+    document.getElementById('quantiteInput').max = dispo || 10;
+    document.getElementById('qteDispoInfo').textContent = dispo ? 'Max : ' + dispo : '';
+});
 window.onload = function() {
     const sel = document.getElementById('materielSelect');
     if (sel.value) loadReservations(sel.value);
@@ -703,6 +741,7 @@ window.onload = function() {
         return true;
     };
 </script>
+<script src="{% static 'js/animations.js' %}"></script>
 </body>
 </html>
 

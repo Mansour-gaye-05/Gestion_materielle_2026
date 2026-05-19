@@ -67,6 +67,7 @@ class Demande(models.Model):
         ('en_cours', 'En cours'),
         ('restituee', 'Restituée'),
         ('retard', 'En retard'),
+        ('annulee', 'Annulee'),
     ]
 
     utilisateur = models.ForeignKey(Utilisateur, on_delete=models.CASCADE, related_name='demandes')

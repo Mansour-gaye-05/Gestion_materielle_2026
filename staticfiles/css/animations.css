@@ -1,0 +1,192 @@
+﻿/* ═══════════════════════════════════════
+   ANIMATIONS GLOBALES - UFR Sciences
+═══════════════════════════════════════ */
+
+/* ── Entrées ── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideInUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ── Classes d'animation ── */
+.anim-fade       { animation: fadeIn     0.5s ease-out both; }
+.anim-up         { animation: fadeInUp   0.6s ease-out both; }
+.anim-down       { animation: fadeInDown 0.6s ease-out both; }
+.anim-left       { animation: fadeInLeft 0.6s ease-out both; }
+.anim-right      { animation: fadeInRight 0.6s ease-out both; }
+.anim-scale      { animation: scaleIn    0.5s ease-out both; }
+.anim-slide-up   { animation: slideInUp  0.5s ease-out both; }
+
+/* ── Délais ── */
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+.delay-6 { animation-delay: 0.6s; }
+.delay-7 { animation-delay: 0.7s; }
+.delay-8 { animation-delay: 0.8s; }
+
+/* ── Scroll animations (via JS) ── */
+.scroll-anim {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.scroll-anim.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.scroll-anim-left {
+  opacity: 0;
+  transform: translateX(-40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.scroll-anim-left.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+.scroll-anim-scale {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.scroll-anim-scale.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ── Hover boutons ── */
+.btn, a.btn, button.btn {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease !important;
+}
+.btn:hover, a.btn:hover, button.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  filter: brightness(1.05);
+}
+.btn:active, a.btn:active, button.btn:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
+}
+
+/* ── Hover cards ── */
+.card, .demande-card, .access-card, .data-table {
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+.card:hover, .demande-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 35px rgba(0,0,0,0.12) !important;
+}
+
+/* ── Pulse (notifications, badges) ── */
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(231,76,60,0.5); }
+  70%  { box-shadow: 0 0 0 10px rgba(231,76,60,0); }
+  100% { box-shadow: 0 0 0 0 rgba(231,76,60,0); }
+}
+.pulse { animation: pulse 1.8s infinite; }
+
+/* ── Shimmer (chargement) ── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+/* ── Float (elements flottants) ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+.floating { animation: float 3s ease-in-out infinite; }
+
+/* ── Shake (erreurs) ── */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%,60% { transform: translateX(-8px); }
+  40%,80% { transform: translateX(8px); }
+}
+.shake { animation: shake 0.4s ease; }
+
+/* ── Bounce ── */
+@keyframes bounce {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-12px); }
+}
+.bounce { animation: bounce 0.6s ease; }
+
+/* ── Spin (chargement) ── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spin { animation: spin 0.8s linear infinite; }
+
+/* ── Navbar sticky animation ── */
+.topbar, .navbar {
+  transition: box-shadow 0.3s ease, background 0.3s ease;
+}
+.topbar.scrolled, .navbar.scrolled {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2) !important;
+}
+
+/* ── Transitions formulaires ── */
+.form-control, .form-select {
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease !important;
+}
+.form-control:focus, .form-select:focus {
+  transform: scale(1.01);
+}
+
+/* ── Alert animation ── */
+.alert {
+  animation: fadeInDown 0.4s ease-out;
+}
+
+/* ── Modal animation ── */
+.modal.fade .modal-dialog {
+  transform: scale(0.9) translateY(-20px);
+  transition: transform 0.3s ease, opacity 0.3s ease !important;
+}
+.modal.show .modal-dialog {
+  transform: scale(1) translateY(0);
+}
+
+/* ── Badge pulse ── */
+.badge-notif {
+  animation: pulse 1.8s infinite;
+}
+
+/* ── Page transition ── */
+body {
+  animation: fadeIn 0.4s ease-out;
+}

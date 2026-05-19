@@ -36,6 +36,7 @@ urlpatterns = [
 
     # Authentification
     path('connexion/', views.connexion, name='connexion'),
+    path('mot-de-passe-oublie/', views.mot_de_passe_oublie, name='mot_de_passe_oublie'),
     path('connexion-admin/', views.connexion_admin, name='connexion_admin'),
     path('deconnexion/', views.deconnexion, name='deconnexion'),
 
@@ -44,7 +45,9 @@ urlpatterns = [
     path('espace_etudiant/', views.espace_etudiant, name='espace_etudiant'),
     path('nouvelle_demande/', views.nouvelle_demande, name='nouvelle_demande'),
     path('mes_demandes/', views.mes_demandes, name='mes_demandes'),
+    path('demande/<int:demande_id>/detail/', views.detail_demande, name='detail_demande'),
     path('profil/', views.profil_etudiant, name='profil_etudiant'),
+    path('profil/mdp/', views.changer_mot_de_passe, name='changer_mot_de_passe'),
     path('chatbot/', views.chatbot, name='chatbot'),
     path('chatbot/message/', views.chatbot_message, name='chatbot_message'),
     path('notifications/count/', views.notifications_count, name='notifications_count'),
@@ -59,6 +62,7 @@ urlpatterns = [
     path('recuperer/<int:demande_id>/', views.recuperer_materiel, name='recuperer_materiel'),
     path('materiel/<int:materiel_id>/reservations/', views.reservations_materiel, name='reservations_materiel'),
     path('signaler-panne-emprunt/<int:demande_id>/', views.signaler_panne_emprunt, name='signaler_panne_emprunt'),
+    path('demande/<int:demande_id>/annuler/', views.annuler_demande, name='annuler_demande'),
 
     # PDF — Fiche d'emprunt (étudiant ou staff)
     path('demande/<int:demande_id>/pdf/emprunt/',

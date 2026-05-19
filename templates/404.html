@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -12,6 +13,7 @@
         .error-code { font-size: 6rem; font-weight: 900; color: #2c3e50; line-height: 1; }
         .error-icon { font-size: 3rem; color: #3498db; margin-bottom: 10px; }
     </style>
+<link rel="stylesheet" href="{% static 'css/animations.css' %}">
 </head>
 <body>
     <div class="error-card">
@@ -28,5 +30,6 @@
             </a>
         </div>
     </div>
+<script src="{% static 'js/animations.js' %}"></script>
 </body>
 </html>

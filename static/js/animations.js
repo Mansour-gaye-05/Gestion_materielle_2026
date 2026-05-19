@@ -1,0 +1,107 @@
+﻿// ═══════════════════════════════════════
+// ANIMATIONS JS GLOBALES - UFR Sciences
+// ═══════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', function () {
+
+  // ── Scroll animations ──────────────────
+  const scrollEls = document.querySelectorAll('.scroll-anim, .scroll-anim-left, .scroll-anim-scale');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  scrollEls.forEach(el => observer.observe(el));
+
+  // ── Navbar scrolled ────────────────────
+  const navbar = document.querySelector('.topbar, .navbar');
+  if (navbar) {
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 20);
+    });
+  }
+
+  // ── Ripple effect sur boutons ──────────
+  document.querySelectorAll('.btn, .btn-action, .btn-hero-primary, .btn-hero-secondary').forEach(btn => {
+    btn.addEventListener('click', function (e) {
+      const ripple = document.createElement('span');
+      const rect = this.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      ripple.style.cssText = 
+        position:absolute;border-radius:50%;
+        width:px;height:px;
+        left:px;
+        top:px;
+        background:rgba(255,255,255,0.35);
+        transform:scale(0);animation:ripple 0.5s ease-out;
+        pointer-events:none;
+      ;
+      if (!this.style.position || this.style.position === 'static') {
+        this.style.position = 'relative';
+        this.style.overflow = 'hidden';
+      }
+      this.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 500);
+    });
+  });
+
+  // ── Ripple keyframe ────────────────────
+  if (!document.getElementById('ripple-style')) {
+    const style = document.createElement('style');
+    style.id = 'ripple-style';
+    style.textContent = '@keyframes ripple { to { transform:scale(2.5); opacity:0; } }';
+    document.head.appendChild(style);
+  }
+
+  // ── Shake sur erreurs formulaire ───────
+  document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', function () {
+      const invalids = this.querySelectorAll(':invalid');
+      invalids.forEach(el => {
+        el.classList.add('shake');
+        setTimeout(() => el.classList.remove('shake'), 400);
+      });
+    });
+  });
+
+  // ── Counter animation ──────────────────
+  document.querySelectorAll('[data-count]').forEach(el => {
+    const target = parseInt(el.getAttribute('data-count'));
+    let current = 0;
+    const step = Math.ceil(target / 40);
+    const timer = setInterval(() => {
+      current = Math.min(current + step, target);
+      el.textContent = current;
+      if (current >= target) clearInterval(timer);
+    }, 30);
+  });
+
+  // ── Fade in cards avec délai ───────────
+  document.querySelectorAll('.demande-card, .card, .access-card').forEach((card, i) => {
+    card.style.animationDelay = (i * 0.08) + 's';
+    card.classList.add('anim-up');
+  });
+
+  // ── Loader page ────────────────────────
+  document.body.style.opacity = '0';
+  document.body.style.transition = 'opacity 0.35s ease';
+  requestAnimationFrame(() => {
+    document.body.style.opacity = '1';
+  });
+
+});
+
+// ── Transition entre pages ─────────────
+document.querySelectorAll('a:not([target="_blank"]):not([href^="#"]):not([href^="mailto"])').forEach(link => {
+  link.addEventListener('click', function (e) {
+    const href = this.getAttribute('href');
+    if (href && !href.startsWith('javascript') && !this.hasAttribute('data-bs-toggle')) {
+      e.preventDefault();
+      document.body.style.opacity = '0';
+      setTimeout(() => window.location.href = href, 300);
+    }
+  });
+});

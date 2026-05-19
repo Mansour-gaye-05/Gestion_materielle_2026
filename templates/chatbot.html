@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -51,6 +52,7 @@
         .mic-status { font-size: 0.75rem; color: #e74c3c; text-align: center; margin-top: 4px; display: none; }
         .mic-status.visible { display: block; }
     </style>
+<link rel="stylesheet" href="{% static 'css/animations.css' %}">
 </head>
 <body>
 <nav class="navbar navbar-dark bg-custom">
@@ -390,5 +392,6 @@ function getCookie(name) {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/animations.js' %}"></script>
 </body>
 </html>

@@ -742,6 +742,34 @@ def carte_materiels(request):
 
 # ==================== AUTHENTIFICATION ====================
 
+
+def mot_de_passe_oublie(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if new_password != confirm_password:
+            messages.error(request, 'Les mots de passe ne correspondent pas.')
+            return render(request, 'mot_de_passe_oublie.html')
+
+        if len(new_password) < 6:
+            messages.error(request, 'Le mot de passe doit contenir au moins 6 caracteres.')
+            return render(request, 'mot_de_passe_oublie.html')
+
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        try:
+            user = User.objects.get(username=username, email=email)
+            user.set_password(new_password)
+            user.save()
+            messages.success(request, 'Mot de passe reinitialise avec succes. Vous pouvez vous connecter.')
+            return redirect('connexion')
+        except User.DoesNotExist:
+            messages.error(request, "Nom d'utilisateur ou email incorrect.")
+    return render(request, 'mot_de_passe_oublie.html')
+
 def connexion(request):
     """Connexion pour les  tudiants"""
     if request.method == 'POST':
@@ -780,7 +808,7 @@ def connexion_admin(request):
 def deconnexion(request):
     logout(request)
     log_action(request, 'deconnexion', f"{request.user.username} s'est deconnecte")
-    messages.info(request, 'Vous  tes d connect ')
+    messages.info(request, 'Vous etes deconnecte avec succes.')
     return redirect('accueil')
 
 
@@ -966,9 +994,59 @@ def reservations_materiel(request, materiel_id):
         'nom': materiel.nom
     })
 @login_required
+
+@login_required
+def annuler_demande(request, demande_id):
+    demande = get_object_or_404(Demande, id=demande_id, utilisateur=request.user)
+    if demande.statut == 'en_attente':
+        demande.statut = 'annulee'
+        demande.save()
+        log_action(request, 'demande_annulee',
+            f"{request.user.username} a annule la demande #{demande.id}",
+            demande=demande)
+        messages.success(request, f'Demande #{demande.id} annulee avec succes.')
+    else:
+        messages.error(request, 'Cette demande ne peut pas etre annulee.')
+    return redirect('mes_demandes')
+
+
+@login_required
+def annuler_demande(request, demande_id):
+    demande = get_object_or_404(Demande, id=demande_id, utilisateur=request.user)
+    if demande.statut == 'en_attente':
+        demande.statut = 'annulee'
+        demande.save()
+        log_action(request, 'demande_annulee',
+            f"{request.user.username} a annule la demande #{demande.id}",
+            demande=demande)
+        messages.success(request, f'Demande #{demande.id} annulee avec succes.')
+    else:
+        messages.error(request, 'Cette demande ne peut pas etre annulee.')
+    return redirect('mes_demandes')
+
+
+@login_required
+def detail_demande(request, demande_id):
+    demande = get_object_or_404(Demande, id=demande_id, utilisateur=request.user)
+    lignes = demande.lignes.select_related('materiel').all()
+    return render(request, 'detail_demande.html', {
+        'demande': demande,
+        'lignes': lignes,
+    })
+
 def mes_demandes(request):
     demandes = Demande.objects.filter(utilisateur=request.user).order_by('-date_demande')
-    return render(request, 'mes_demandes.html', {'demandes': demandes})
+    statut_filter = request.GET.get('statut', '')
+    search = request.GET.get('search', '')
+    if statut_filter:
+        demandes = demandes.filter(statut=statut_filter)
+    if search:
+        demandes = demandes.filter(lignes__materiel__nom__icontains=search).distinct()
+    return render(request, 'mes_demandes.html', {
+        'demandes': demandes,
+        'statut_filter': statut_filter,
+        'search': search,
+    })
 
 
 @login_required
@@ -1545,3 +1623,30 @@ def marquer_notifications_admin_lues(request):
         Notification.objects.filter(lu=False).update(lu=True)
         return JsonResponse({'status': 'ok'})
     return JsonResponse({'error': 'methode non autorisee'}, status=405)
+
+
+# ==================== CHANGER MOT DE PASSE ====================
+
+@login_required
+def changer_mot_de_passe(request):
+    if request.method == 'POST':
+        ancien = request.POST.get('ancien_mdp')
+        nouveau = request.POST.get('nouveau_mdp')
+        confirmer = request.POST.get('confirmer_mdp')
+
+        if not request.user.check_password(ancien):
+            messages.error(request, 'Ancien mot de passe incorrect.')
+        elif nouveau != confirmer:
+            messages.error(request, 'Les nouveaux mots de passe ne correspondent pas.')
+        elif len(nouveau) < 6:
+            messages.error(request, 'Le mot de passe doit contenir au moins 6 caracteres.')
+        else:
+            request.user.set_password(nouveau)
+            request.user.save()
+            log_action(request, 'connexion', f'{request.user.username} a change son mot de passe')
+            from django.contrib.auth import update_session_auth_hash
+            update_session_auth_hash(request, request.user)
+            messages.success(request, 'Mot de passe change avec succes !')
+            return redirect('profil_etudiant')
+
+    return redirect('profil_etudiant')

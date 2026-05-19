@@ -1,0 +1,151 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mot de passe oublie - UFR Sciences</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+        body::before {
+            content: ''; position: absolute;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(52,152,219,0.15) 0%, transparent 70%);
+            top: -200px; right: -200px; border-radius: 50%;
+        }
+        body::after {
+            content: ''; position: absolute;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(44,62,80,0.3) 0%, transparent 70%);
+            bottom: -100px; left: -100px; border-radius: 50%;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px; padding: 40px;
+            width: 100%; max-width: 430px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+            position: relative; z-index: 1;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        .login-logo {
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 20px rgba(243,156,18,0.3);
+            animation: float 3s ease-in-out infinite;
+        }
+        .login-logo i { font-size: 1.8rem; color: white; }
+        .title { font-family: 'Manrope', sans-serif; font-weight: 800; color: white; font-size: 1.5rem; text-align: center; margin-bottom: 6px; }
+        .subtitle { color: rgba(255,255,255,0.5); font-size: 0.82rem; text-align: center; margin-bottom: 28px; }
+        .form-label { color: rgba(255,255,255,0.8); font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; }
+        .form-control {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px; color: white;
+            padding: 12px 16px 12px 38px; font-size: 0.9rem; transition: all 0.2s;
+        }
+        .form-control:focus {
+            background: rgba(255,255,255,0.12);
+            border-color: #f39c12;
+            box-shadow: 0 0 0 3px rgba(243,156,18,0.2);
+            color: white;
+        }
+        .form-control::placeholder { color: rgba(255,255,255,0.3); }
+        .input-icon { position: relative; }
+        .input-icon i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4); font-size: 0.85rem; }
+        .btn-submit {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            border: none; border-radius: 12px; color: white;
+            font-weight: 700; font-size: 0.95rem; padding: 13px;
+            width: 100%; transition: all 0.3s; margin-top: 8px;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(243,156,18,0.4); color: white; }
+        .alert-danger { border-radius: 12px; font-size: 0.83rem; background: rgba(231,76,60,0.2); border: 1px solid rgba(231,76,60,0.3); color: #e74c3c; }
+        .alert-success { border-radius: 12px; font-size: 0.83rem; background: rgba(39,174,96,0.2); border: 1px solid rgba(39,174,96,0.3); color: #2ecc71; }
+        .divider { border-color: rgba(255,255,255,0.1); margin: 20px 0; }
+        .link-bottom { text-align: center; color: rgba(255,255,255,0.5); font-size: 0.82rem; }
+        .link-bottom a { color: #3498db; font-weight: 600; text-decoration: none; }
+        .steps { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px 16px; margin-bottom: 24px; }
+        .steps p { color: rgba(255,255,255,0.6); font-size: 0.78rem; margin: 0; }
+        .steps p i { color: #f39c12; margin-right: 6px; }
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="login-logo"><i class="fas fa-key"></i></div>
+    <h1 class="title">Mot de passe oublie</h1>
+    <p class="subtitle">Reinitialiser votre mot de passe</p>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} mb-3">
+        <i class="fas fa-{% if message.tags == 'success' %}check{% else %}exclamation{% endif %}-circle me-2"></i>{{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="steps">
+        <p><i class="fas fa-info-circle"></i> Entrez votre nom d'utilisateur et votre email universitaire pour reinitialiser votre mot de passe.</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Nom d'utilisateur *</label>
+            <div class="input-icon">
+                <i class="fas fa-user"></i>
+                <input type="text" name="username" class="form-control" placeholder="Votre identifiant" required>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Email universitaire *</label>
+            <div class="input-icon">
+                <i class="fas fa-envelope"></i>
+                <input type="email" name="email" class="form-control" placeholder="prenom.nom3@univ-thies.sn" required>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Nouveau mot de passe *</label>
+            <div class="input-icon">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="new_password" class="form-control" placeholder="Min. 6 caracteres" required minlength="6">
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Confirmer le mot de passe *</label>
+            <div class="input-icon">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="confirm_password" class="form-control" placeholder="Confirmer" required>
+            </div>
+        </div>
+        <button type="submit" class="btn-submit">
+            <i class="fas fa-redo me-2"></i> Reinitialiser le mot de passe
+        </button>
+    </form>
+
+    <hr class="divider">
+    <p class="link-bottom">
+        <a href="{% url 'connexion' %}"><i class="fas fa-arrow-left me-1"></i> Retour a la connexion</a>
+    </p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/animations.js' %}"></script>
+</body>
+</html>

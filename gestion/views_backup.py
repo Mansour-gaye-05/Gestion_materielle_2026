@@ -760,7 +760,7 @@ def connexion_admin(request):
 def deconnexion(request):
     logout(request)
     log_action(request, 'deconnexion', f"{request.user.username} s'est deconnecte")
-    messages.info(request, 'Vous êtes déconnecté')
+    messages.info(request, 'Vous êtes déconnecteé')
     return redirect('accueil')
 
 

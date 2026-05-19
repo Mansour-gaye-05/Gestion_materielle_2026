@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -7,312 +8,394 @@
     <title>Mes demandes - UFR Sciences</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #2c3e50; }
-        body { background: #f0f2f5; padding-bottom: 80px; }
-        .navbar-custom { background: var(--primary); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        :root { --primary: #2c3e50; --accent: #3498db; --success: #27ae60; --warning: #f39c12; --danger: #e74c3c; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f0f2f5; margin: 0; padding-bottom: 70px; }
+        h1,h2,h3,h4,h5,h6,.fw-bold { font-family: 'Manrope', sans-serif; }
+
+        /* TOPBAR */
+        .topbar { background: var(--primary); position: sticky; top: 0; z-index: 1000; height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .topbar-brand { font-family: 'Manrope', sans-serif; font-weight: 800; color: white; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+        .btn-icon { width: 34px; height: 34px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; font-size: 0.82rem; text-decoration: none; transition: all 0.2s; }
+        .btn-icon:hover { background: rgba(255,255,255,0.2); color: white; }
 
         /* BOTTOM NAV */
-        .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--primary); z-index: 1000; padding: 8px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.2); }
-        .bottom-nav a { flex: 1; text-align: center; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.65rem; display: flex; flex-direction: column; align-items: center; gap: 2px; }
-        .bottom-nav a i { font-size: 1.2rem; }
+        .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--primary); z-index: 1000; padding: 6px 0 8px; box-shadow: 0 -2px 10px rgba(0,0,0,0.15); }
+        .bottom-nav a { flex: 1; text-align: center; color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.6rem; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .bottom-nav a i { font-size: 1.1rem; }
         .bottom-nav a.active { color: white; }
-        @media (max-width: 768px) { .bottom-nav { display: flex; } .desktop-nav { display: none !important; } }
+        .bottom-nav .fab-btn { background: var(--danger); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; margin-top: -18px; box-shadow: 0 4px 12px rgba(231,76,60,0.4); }
+        @media (max-width: 768px) { .bottom-nav { display: flex; } .table-view { display: none; } }
+        @media (min-width: 769px) { .card-view { display: none; } }
 
         /* DEMANDE CARD */
-        .demande-card { background: white; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); margin-bottom: 12px; overflow: hidden; border: none; }
-        .demande-card-header { padding: 12px 15px 8px; border-bottom: 1px solid #f0f0f0; }
-        .demande-card-body { padding: 10px 15px; }
-        .demande-card-footer { padding: 10px 15px; background: #fafafa; border-top: 1px solid #f0f0f0; }
+        .demande-card { background: white; border-radius: 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); margin-bottom: 12px; overflow: hidden; border-top: 4px solid #eee; }
+        .demande-card.statut-en_attente { border-top-color: var(--warning); }
+        .demande-card.statut-approuvee { border-top-color: var(--success); }
+        .demande-card.statut-refusee { border-top-color: var(--danger); }
+        .demande-card.statut-en_cours { border-top-color: var(--accent); }
+        .demande-card.statut-restituee { border-top-color: #95a5a6; }
+        .demande-card.statut-retard { border-top-color: #c0392b; }
+        .demande-card-header { padding: 12px 16px 8px; }
+        .demande-card-body { padding: 8px 16px; }
+        .demande-card-footer { padding: 10px 16px; background: #fafafa; border-top: 1px solid #f0f0f0; }
 
-        /* STATUT COLORS */
-        .statut-en_attente { border-top: 4px solid #f39c12; }
-        .statut-approuvee  { border-top: 4px solid #27ae60; }
-        .statut-refusee    { border-top: 4px solid #e74c3c; }
-        .statut-en_cours   { border-top: 4px solid #3498db; }
-        .statut-restituee  { border-top: 4px solid #95a5a6; }
-        .statut-retard     { border-top: 4px solid #c0392b; }
+        /* BADGE */
+        .badge-statut { padding: 4px 10px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* ACTION BUTTONS */
-        .btn-action   { min-height: 46px; border-radius: 23px; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; }
-        .btn-rendre   { background: #27ae60; border: none; color: white; }
-        .btn-rendre:hover { background: #219a52; color: white; }
-        .btn-recuperer { background: #f39c12; border: none; color: white; }
-        .btn-recuperer:hover { background: #d68910; color: white; }
-        .btn-panne    { background: #e74c3c; border: none; color: white; }
-        .btn-panne:hover { background: #c0392b; color: white; }
-        .btn-custom   { background: var(--primary) !important; color: white !important; border: none; }
+        /* BUTTONS */
+        .btn-action { border-radius: 25px; font-weight: 600; font-size: 0.82rem; padding: 9px 16px; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 42px; font-family: 'Inter', sans-serif; }
+        .btn-signaler { background: var(--danger); color: white; }
+        .btn-signaler:hover { background: #c0392b; color: white; }
+        .btn-primary-custom { background: var(--primary); color: white; }
 
         /* TABLE DESKTOP */
-        @media (min-width: 769px) { .card-view  { display: none; } }
-        @media (max-width: 768px) { .table-view { display: none; } }
+        .data-table { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .data-table thead th { background: var(--primary); color: white; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; padding: 12px 16px; border: none; font-family: 'Inter', sans-serif; }
+        .data-table tbody td { padding: 12px 16px; border-bottom: 1px solid #f5f5f5; font-size: 0.83rem; vertical-align: middle; }
+        .data-table tbody tr:hover { background: #f8f9fa; }
+        .data-table tbody tr:last-child td { border-bottom: none; }
 
         /* ALERTS */
-        .alert { border-radius: 12px; font-size: 0.85rem; }
-        .badge { font-size: 0.72rem; border-radius: 12px; padding: 4px 9px; }
+        .alert { border-radius: 12px; font-size: 0.83rem; font-family: 'Inter', sans-serif; }
 
-        /* EMPTY STATE */
+        /* EMPTY */
         .empty-state { text-align: center; padding: 50px 20px; }
-        .empty-state i { font-size: 4rem; color: #dee2e6; }
+        .empty-state i { font-size: 3.5rem; color: #dee2e6; }
 
-        /* PDF BUTTONS */
-        .pdf-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
-        .pdf-bar a { font-size: 0.75rem; border-radius: 20px; padding: 3px 10px; }
+        /* ANIMATIONS */
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        .welcome-card { animation: fadeInUp 0.5s ease forwards; }
+        .stat-grid { animation: fadeInUp 0.5s ease 0.1s forwards; opacity:0; }
+        .section-card { animation: fadeInUp 0.5s ease 0.2s forwards; opacity:0; }
+        .demande-card { animation: fadeInUp 0.4s ease forwards; opacity:0; }
+        .demande-card:nth-child(1) { animation-delay: 0.05s; }
+        .demande-card:nth-child(2) { animation-delay: 0.1s; }
+        .demande-card:nth-child(3) { animation-delay: 0.15s; }
+        .demande-card:nth-child(4) { animation-delay: 0.2s; }
+        .demande-card:nth-child(5) { animation-delay: 0.25s; }
+        .topbar { animation: fadeInUp 0.4s ease forwards; }
+        .stat-card { transition: transform 0.2s ease; }
+        .stat-card:hover { transform: scale(1.04); }
+        .btn-action { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+        .emprunt-item { transition: transform 0.2s ease; }
+        .emprunt-item:hover { transform: translateX(4px); }
+    
     </style>
+<link rel="stylesheet" href="{% static 'css/animations.css' %}">
 </head>
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar navbar-dark navbar-custom px-3 py-2">
-    <a class="navbar-brand small" href="{% url 'accueil' %}"><i class="fas fa-graduation-cap"></i> UFR Sciences</a>
-    <div class="desktop-nav d-flex gap-2">
-        <span class="text-white align-self-center small me-1"><i class="fas fa-user"></i> {{ user.username }}</span>
-        <a href="{% url 'catalogue' %}" class="btn btn-outline-light btn-sm"><i class="fas fa-box"></i> Catalogue</a>
-        <a href="{% url 'espace_etudiant' %}" class="btn btn-outline-light btn-sm"><i class="fas fa-home"></i> Mon espace</a>
-        <a href="{% url 'deconnexion' %}" class="btn btn-outline-light btn-sm"><i class="fas fa-sign-out-alt"></i></a>
+<!-- TOPBAR -->
+<div class="topbar">
+    <div class="topbar-brand"><i class="fas fa-history me-1"></i> Mes demandes</div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'nouvelle_demande' %}" class="btn-icon" title="Nouvelle demande"><i class="fas fa-plus"></i></a>
+        <a href="{% url 'espace_etudiant' %}" class="btn-icon" title="Mon espace"><i class="fas fa-home"></i></a>
+        <a href="{% url 'deconnexion' %}" class="btn-icon" style="border-color:rgba(231,76,60,0.3)" title="Deconnexion"><i class="fas fa-sign-out-alt"></i></a>
     </div>
-</nav>
+</div>
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
     <a href="{% url 'espace_etudiant' %}"><i class="fas fa-home"></i><span>Accueil</span></a>
     <a href="{% url 'catalogue' %}"><i class="fas fa-box"></i><span>Catalogue</span></a>
-    <a href="{% url 'nouvelle_demande' %}" style="color:white">
-        <div style="background:#e74c3c;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;margin-top:-20px;box-shadow:0 4px 12px rgba(231,76,60,0.4)">
-            <i class="fas fa-plus" style="font-size:1.4rem"></i>
-        </div>
+    <a href="{% url 'nouvelle_demande' %}">
+        <div class="fab-btn"><i class="fas fa-plus" style="color:white;font-size:1.2rem"></i></div>
         <span>Demander</span>
     </a>
     <a href="{% url 'mes_demandes' %}" class="active"><i class="fas fa-history"></i><span>Historique</span></a>
     <a href="{% url 'chatbot' %}"><i class="fas fa-robot"></i><span>IA</span></a>
 </div>
 
+
+<!-- FILTRES -->
+<div style="background:white;padding:10px 16px;border-bottom:1px solid #f0f0f0;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <form method="get" style="display:flex;gap:8px;flex-wrap:wrap;width:100%;align-items:center">
+        <input type="text" name="search" value="{{ search }}" placeholder="Rechercher un materiel..." 
+               class="form-control form-control-sm" style="max-width:200px;border-radius:20px">
+        <select name="statut" class="form-select form-select-sm" style="max-width:160px;border-radius:20px" onchange="this.form.submit()">
+            <option value="">Tous les statuts</option>
+            <option value="en_attente" {% if statut_filter == 'en_attente' %}selected{% endif %}>En attente</option>
+            <option value="approuvee" {% if statut_filter == 'approuvee' %}selected{% endif %}>Approuvee</option>
+            <option value="refusee" {% if statut_filter == 'refusee' %}selected{% endif %}>Refusee</option>
+            <option value="en_cours" {% if statut_filter == 'en_cours' %}selected{% endif %}>En cours</option>
+            <option value="restituee" {% if statut_filter == 'restituee' %}selected{% endif %}>Restituee</option>
+            <option value="annulee" {% if statut_filter == 'annulee' %}selected{% endif %}>Annulee</option>
+        </select>
+        <button type="submit" class="btn btn-sm" style="background:var(--primary);color:white;border-radius:20px;padding:4px 16px">
+            <i class="fas fa-search"></i>
+        </button>
+        {% if statut_filter or search %}
+        <a href="{% url 'mes_demandes' %}" class="btn btn-sm btn-outline-secondary" style="border-radius:20px">
+            <i class="fas fa-times"></i> Effacer
+        </a>
+        {% endif %}
+    </form>
+</div>
+
 <div class="container-fluid px-3 mt-3">
 
-    <!-- Titre -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="fw-bold text-dark mb-0"><i class="fas fa-history"></i> Mes demandes</h6>
-        <a href="{% url 'nouvelle_demande' %}" class="btn btn-sm btn-custom px-3" style="border-radius:20px">
-            <i class="fas fa-plus"></i> Nouvelle
-        </a>
+    <!-- ALERTS -->
+    {% if messages %}{% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show py-2">
+        {{ message }}<button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
     </div>
+    {% endfor %}{% endif %}
 
-    <!-- ALERTS messages Django -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show py-2">
-                {{ message }}<button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
-
-    <!-- Alertes retard et approbation -->
     {% for demande in demandes %}
         {% if demande.statut == 'retard' %}
-            <div class="alert alert-danger alert-dismissible fade show py-2 small">
-                <i class="fas fa-exclamation-triangle"></i>
-                <strong>RETARD</strong> — Demande #{{ demande.id }} en retard depuis le {{ demande.date_fin|date:"d/m/Y" }}
-                <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
-            </div>
+        <div class="alert alert-danger alert-dismissible fade show py-2 small">
+            <i class="fas fa-exclamation-triangle"></i> <strong>RETARD</strong> — Demande #{{ demande.id }} en retard depuis le {{ demande.date_fin|date:"d/m/Y" }}
+            <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+        </div>
         {% elif demande.statut == 'approuvee' %}
-            <div class="alert alert-success alert-dismissible fade show py-2 small">
-                <i class="fas fa-check-circle"></i>
-                <strong>APPROUVÉE</strong> — Demande #{{ demande.id }} approuvée ! Récupérez le matériel.
-                <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
-            </div>
+        <div class="alert alert-success alert-dismissible fade show py-2 small">
+            <i class="fas fa-check-circle"></i> <strong>APPROUVEE</strong> — Demande #{{ demande.id }} approuvee ! Presentez-vous au laboratoire.
+            <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+        </div>
         {% endif %}
     {% endfor %}
 
-    <!-- ══════════════════════════════════════════
-         VUE CARTES (MOBILE)
-    ══════════════════════════════════════════ -->
+    <!-- VUE CARTES MOBILE -->
     <div class="card-view">
         {% for demande in demandes %}
-
         <div class="demande-card statut-{{ demande.statut }}">
-
-            <!-- Header carte -->
-            <div class="demande-card-header">
+            <a href="{% url 'detail_demande' demande.id %}" style="text-decoration:none;color:inherit"><div class="demande-card-header">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <span class="text-muted small">#{{ demande.id }} — {{ demande.date_demande|date:"d/m/Y" }}</span>
-                        <div class="fw-bold mt-1">
-                            {% for ligne in demande.lignes.all %}{{ ligne.materiel.nom }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        <span class="text-muted" style="font-size:0.72rem">#{{ demande.id }} — {{ demande.date_demande|date:"d/m/Y" }}</span>
+                        <div class="fw-bold mt-1" style="font-family:Manrope;font-size:0.9rem;color:var(--primary)">
+                            {% for l in demande.lignes.all %}{{ l.materiel.nom }}{% if not forloop.last %}, {% endif %}{% endfor %}
                         </div>
                     </div>
-                    <span class="badge
-                        {% if demande.statut == 'en_attente' %}bg-warning
-                        {% elif demande.statut == 'approuvee' %}bg-success
-                        {% elif demande.statut == 'refusee' %}bg-danger
-                        {% elif demande.statut == 'en_cours' %}bg-info
-                        {% elif demande.statut == 'restituee' %}bg-secondary
-                        {% else %}bg-dark{% endif %}">
+                    <span class="badge-statut {% if demande.statut == 'en_attente' %}
+                        <button class="btn btn-action mt-2" style="background:#e74c3c;color:white;border-radius:25px"
+                            data-bs-toggle="modal" data-bs-target="#annulerModal{{ demande.id }}">
+                            <i class="fas fa-times-circle me-1"></i> Annuler la demande
+                        </button>bg-warning text-dark{% elif demande.statut == 'approuvee' %}bg-success text-white{% elif demande.statut == 'refusee' %}bg-danger text-white{% elif demande.statut == 'en_cours' %}bg-info text-white{% elif demande.statut == 'restituee' %}bg-secondary text-white{% else %}bg-dark text-white{% endif %}">
                         {{ demande.get_statut_display }}
                     </span>
                 </div>
             </div>
-
-            <!-- Body carte -->
             <div class="demande-card-body">
-                <div class="row g-1 small text-muted">
-                    <div class="col-6"><i class="fas fa-calendar-alt"></i> Du {{ demande.date_debut|date:"d/m/Y" }}</div>
-                    <div class="col-6"><i class="fas fa-calendar-check"></i> Au {{ demande.date_fin|date:"d/m/Y" }}</div>
-                    {% if demande.motif_refus %}
-                        <div class="col-12 text-danger mt-1"><i class="fas fa-times-circle"></i> {{ demande.motif_refus|truncatechars:60 }}</div>
-                    {% endif %}
-                </div>
-
-                <!-- Boutons PDF -->
-                <div class="pdf-bar">
-                    {% if demande.statut == 'approuvee' or demande.statut == 'en_cours' %}
-                        <a href="{% url 'pdf_fiche_emprunt' demande.id %}" target="_blank" class="btn btn-outline-dark btn-sm">
-                            <i class="fas fa-file-pdf"></i> Fiche emprunt
-                        </a>
-                        
-                    {% endif %}
-                    {% if demande.statut == 'restituee' %}
-                        <a href="{% url 'pdf_recu_restitution' demande.id %}" target="_blank" class="btn btn-outline-success btn-sm">
-                            <i class="fas fa-file-pdf"></i> Reçu restitution
-                        </a>
-                    {% endif %}
+                <div class="row g-1" style="font-size:0.75rem;color:#888">
+                    <div class="col-6"><i class="fas fa-calendar-alt me-1"></i> Du {{ demande.date_debut|date:"d/m/Y" }}</div>
+                    <div class="col-6"><i class="fas fa-calendar-check me-1"></i> Au {{ demande.date_fin|date:"d/m/Y" }}</div>
+                    {% if demande.motif_refus %}<div class="col-12 mt-1" style="color:var(--danger)"><i class="fas fa-times-circle me-1"></i>{{ demande.motif_refus|truncatechars:60 }}</div>{% endif %}
                 </div>
             </div>
-
-            <!-- Footer actions -->
-            {% if demande.statut == 'approuvee' or demande.statut == 'en_cours' %}
+            {% if demande.statut == 'en_cours' or demande.statut == 'approuvee' or demande.statut == 'restituee' or demande.statut == 'en_attente' %}
             <div class="demande-card-footer">
-                {% if demande.statut == 'approuvee' %}
-                    <a href="{% url 'recuperer_materiel' demande.id %}" class="btn btn-action btn-recuperer"
-                       onclick="return confirm('Confirmer la réception du matériel ?')">
-                        <i class="fas fa-hand-peace"></i> Je récupère le matériel
-                    </a>
+                {% if demande.statut == 'en_attente' %}
+                    <button class="btn btn-action" style="background:#e74c3c;color:white;border-radius:25px;font-family:Inter;font-weight:600"
+                        data-bs-toggle="modal" data-bs-target="#annulerModal{{ demande.id }}">
+                        <i class="fas fa-times-circle me-1"></i> Annuler la demande
+                    </button>
+                {% elif demande.statut == 'approuvee' %}
+                    <div style="font-size:0.78rem;color:var(--success)"><i class="fas fa-check-circle me-1"></i> Approuvee — Presentez-vous au laboratoire pour recuperer le materiel.</div>
                 {% elif demande.statut == 'en_cours' %}
                     <div class="row g-2">
-                        
-                        <div class="col-6">
-                            <button class="btn btn-action btn-panne"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#panneModal{{ demande.id }}">
-                                <i class="fas fa-exclamation-triangle"></i> Panne
+                        <div class="col-12">
+                            <button class="btn btn-action btn-signaler" data-bs-toggle="modal" data-bs-target="#panneModal{{ demande.id }}">
+                                <i class="fas fa-exclamation-triangle"></i> Signaler une panne
                             </button>
                         </div>
+                        <div class="col-12">
+                            <div style="font-size:0.75rem;color:#888;text-align:center"><i class="fas fa-info-circle me-1"></i> Presentez-vous au laboratoire pour restituer le materiel.</div>
+                        </div>
                     </div>
+                {% elif demande.statut == 'restituee' %}
+                    <a href="{% url 'bon_sortie_pdf' demande.id %}" class="btn btn-action btn-primary-custom" style="font-size:0.78rem">
+                        <i class="fas fa-file-pdf"></i> Telecharger bon de sortie
+                    </a>
                 {% endif %}
             </div>
             {% endif %}
+        </div>
 
-        </div><!-- /.demande-card -->
-                {% empty %}
+        <!-- MODAL PANNE -->
+        {% if demande.statut == 'en_cours' %}
+        <div class="modal fade" id="panneModal{{ demande.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content" style="border-radius:16px;overflow:hidden;font-family:Inter">
+                    <form method="post" action="{% url 'signaler_panne_emprunt' demande.id %}">
+                        {% csrf_token %}
+                        <div class="modal-header" style="background:var(--danger);color:white">
+                            <h6 class="modal-title" style="font-family:Manrope;font-weight:700"><i class="fas fa-exclamation-triangle me-2"></i>Signaler une panne</h6>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="small text-muted mb-2">Materiel : <strong>{% for l in demande.lignes.all %}{{ l.materiel.nom }}{% endfor %}</strong></p>
+                            <label class="form-label small fw-bold">Description du probleme :</label>
+                            <textarea name="description" class="form-control" rows="4" placeholder="Ex: ne s allume plus, ecran casse, mesures incorrectes..." required style="border-radius:10px;font-size:0.85rem"></textarea>
+                            <small class="text-muted mt-1 d-block"><i class="fas fa-info-circle me-1"></i>Un technicien sera informe immediatement.</small>
+                        </div>
+                        <div class="modal-footer border-0 pt-0">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal" style="border-radius:20px">Annuler</button>
+                            <button type="submit" class="btn btn-danger btn-sm px-4" style="border-radius:20px;font-family:Inter;font-weight:600">Signaler</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% empty %}
         <div class="empty-state">
             <i class="fas fa-inbox d-block mb-3"></i>
-            <h6 class="text-muted">Aucune demande pour le moment</h6>
-            <a href="{% url 'nouvelle_demande' %}" class="btn btn-custom mt-3 px-4" style="border-radius:25px">
+            <h6 class="text-muted" style="font-family:Manrope">Aucune demande pour le moment</h6>
+            <a href="{% url 'nouvelle_demande' %}" class="btn mt-3 btn-primary-custom btn-action" style="width:auto;padding:10px 30px">
                 <i class="fas fa-plus-circle"></i> Faire une demande
             </a>
         </div>
         {% endfor %}
-    </div><!-- /.card-view -->
+    </div>
 
-    <!-- ══════════════════════════════════════════
-         VUE TABLE (DESKTOP)
-    ══════════════════════════════════════════ -->
+    <!-- VUE TABLE DESKTOP -->
     <div class="table-view">
-        <div class="card border-0 shadow-sm" style="border-radius:16px;overflow:hidden">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead style="background:#2c3e50;color:white">
-                            <tr>
-                                <th class="ps-3">ID</th>
-                                <th>Date</th>
-                                <th>Matériel</th>
-                                <th>Période</th>
-                                <th>Statut</th>
-                                <th>Actions</th>
-                                <th>Documents</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for demande in demandes %}
-                            <tr>
-                                <td class="ps-3 fw-bold">#{{ demande.id }}</td>
-                                <td class="small">{{ demande.date_demande|date:"d/m/Y" }}</td>
-                                <td>
-                                    {% for l in demande.lignes.all %}
-                                        <strong>{{ l.materiel.nom|truncatechars:25 }}</strong>{% if not forloop.last %}, {% endif %}
-                                    {% endfor %}
-                                </td>
-                                <td class="small">{{ demande.date_debut|date:"d/m" }} → {{ demande.date_fin|date:"d/m/Y" }}</td>
-                                <td>
-                                    <span class="badge
-                                        {% if demande.statut == 'en_attente' %}bg-warning
-                                        {% elif demande.statut == 'approuvee' %}bg-success
-                                        {% elif demande.statut == 'refusee' %}bg-danger
-                                        {% elif demande.statut == 'en_cours' %}bg-info
-                                        {% elif demande.statut == 'restituee' %}bg-secondary
-                                        {% else %}bg-dark{% endif %}">
-                                        {{ demande.get_statut_display }}
-                                    </span>
-                                </td>
-                                <td>
-                                    {% if demande.statut == 'approuvee' %}
-                                        <a href="{% url 'recuperer_materiel' demande.id %}"
-                                           class="btn btn-sm btn-recuperer"
-                                           onclick="return confirm('Confirmer ?')"
-                                           style="border-radius:20px">
-                                            <i class="fas fa-hand-peace"></i> Récupérer
-                                        </a>
-                                    {% elif demande.statut == 'en_cours' %}
-                                        <div class="d-flex gap-1">
-                                            
-                                            <button class="btn btn-sm btn-panne"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#panneModal{{ demande.id }}"
-                                                    style="border-radius:20px">
-                                                <i class="fas fa-exclamation-triangle"></i>
-                                            </button>
-                                        </div>
-                                    {% elif demande.statut == 'en_attente' %}
-                                        <span class="text-muted small"><i class="fas fa-hourglass-half"></i> En attente</span>
-                                    {% elif demande.statut == 'restituee' %}
-                                        <div class="d-flex flex-column gap-1">
-                                        <span class="text-success small"><i class="fas fa-check-circle"></i> Rendu</span>
-                                        
-                                        </div>
-                                    {% else %}—{% endif %}
-                                </td>
-                                <td>
-                                    {% if demande.statut == 'approuvee' or demande.statut == 'en_cours' %}
-                                        <a href="{% url 'pdf_fiche_emprunt' demande.id %}" target="_blank"
-                                           class="btn btn-outline-dark btn-sm mb-1" style="border-radius:20px">
-                                            <i class="fas fa-file-pdf"></i> Fiche
-                                        </a>
-                                        
-                                    {% elif demande.statut == 'restituee' %}
-                                        <a href="{% url 'pdf_recu_restitution' demande.id %}" target="_blank"
-                                           class="btn btn-outline-success btn-sm" style="border-radius:20px">
-                                            <i class="fas fa-file-pdf"></i> Reçu
-                                        </a>
-                                    {% else %}—{% endif %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="7" class="text-center py-5 text-muted">
-                                    <i class="fas fa-inbox fa-3x d-block mb-2"></i>Aucune demande
-                                    <a href="{% url 'nouvelle_demande' %}" class="btn btn-custom btn-sm mt-2">Faire une demande</a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+        <div class="data-table">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Materiel</th><th>Periode</th><th>Statut</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for demande in demandes %}
+                    <tr>
+                        <td class="fw-bold" style="color:var(--primary)">#{{ demande.id }}</td>
+                        <td><strong>{% for l in demande.lignes.all %}{{ l.materiel.nom|truncatechars:25 }}{% endfor %}</strong></td>
+                        <td class="small text-muted">{{ demande.date_debut|date:"d/m/Y" }} → {{ demande.date_fin|date:"d/m/Y" }}</td>
+                        <td>
+                            <span class="badge-statut {% if demande.statut == 'en_attente' %}bg-warning text-dark{% elif demande.statut == 'approuvee' %}bg-success text-white{% elif demande.statut == 'refusee' %}bg-danger text-white{% elif demande.statut == 'en_cours' %}bg-info text-white{% elif demande.statut == 'restituee' %}bg-secondary text-white{% else %}bg-dark text-white{% endif %}">
+                                {{ demande.get_statut_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if demande.statut == 'en_cours' %}
+                                <button class="btn btn-sm btn-signaler" data-bs-toggle="modal" data-bs-target="#panneModal{{ demande.id }}" style="border-radius:20px;font-size:0.75rem;padding:4px 12px">
+                                    <i class="fas fa-exclamation-triangle"></i> Signaler panne
+                                </button>
+                            {% elif demande.statut == 'approuvee' %}
+                                <span class="small text-success"><i class="fas fa-check-circle"></i> Allez au labo</span>
+                            {% elif demande.statut == 'restituee' %}
+                                <a href="{% url 'bon_sortie_pdf' demande.id %}" class="btn btn-sm btn-primary-custom" style="border-radius:20px;font-size:0.75rem;padding:4px 12px">
+                                    <i class="fas fa-file-pdf"></i> Bon de sortie
+                                </a>
+                            {% elif demande.statut == 'en_attente' %}
+                                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#annulerModal{{ demande.id }}" style="border-radius:20px;font-size:0.75rem;padding:4px 12px">
+                                    <i class="fas fa-times-circle"></i> Annuler
+                                </button>
+                            {% else %}—{% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center py-5 text-muted">
+                        <i class="fas fa-inbox fa-3x d-block mb-2"></i>Aucune demande
+                        <a href="{% url 'nouvelle_demande' %}" class="btn btn-sm btn-primary-custom mt-2" style="border-radius:20px">Faire une demande</a>
+                    </td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% for demande in demandes %}
+        <!-- MODAL PANNE -->
+        {% if demande.statut == 'en_cours' %}
+        <div class="modal fade" id="panneModal{{ demande.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content" style="border-radius:16px;overflow:hidden;font-family:Inter">
+                    <form method="post" action="{% url 'signaler_panne_emprunt' demande.id %}">
+                        {% csrf_token %}
+                        <div class="modal-header" style="background:var(--danger);color:white">
+                            <h6 class="modal-title" style="font-family:Manrope;font-weight:700"><i class="fas fa-exclamation-triangle me-2"></i>Signaler une panne</h6>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="small text-muted mb-2">Materiel : <strong>{% for l in demande.lignes.all %}{{ l.materiel.nom }}{% endfor %}</strong></p>
+                            <label class="form-label small fw-bold">Description du probleme :</label>
+                            <textarea name="description" class="form-control" rows="4" placeholder="Ex: ne s allume plus, ecran casse, mesures incorrectes..." required style="border-radius:10px;font-size:0.85rem"></textarea>
+                            <small class="text-muted mt-1 d-block"><i class="fas fa-info-circle me-1"></i>Un technicien sera informe immediatement.</small>
+                        </div>
+                        <div class="modal-footer border-0 pt-0">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal" style="border-radius:20px">Annuler</button>
+                            <button type="submit" class="btn btn-danger btn-sm px-4" style="border-radius:20px;font-family:Inter;font-weight:600">Signaler</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-    </div><!-- /.table-view -->
+        {% endif %}
+{% endfor %}
 
-</div><!-- /.container-fluid -->
+{% for demande in demandes %}
+{% if demande.statut == 'en_attente' %}
+<div class="modal fade" id="annulerModal{{ demande.id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;overflow:hidden">
+            <div class="modal-header" style="background:#e74c3c;color:white">
+                <h6 class="modal-title" style="font-family:Manrope;font-weight:700">
+                    <i class="fas fa-times-circle me-2"></i>Annuler la demande
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-1">Voulez-vous vraiment annuler la demande <strong>#{{ demande.id }}</strong> ?</p>
+                <p class="text-muted small">Cette action est irreversible.</p>
+            </div>
+            <div class="modal-footer" style="border:none;gap:8px">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal" style="border-radius:20px">Fermer</button>
+                <form method="post" action="{% url 'annuler_demande' demande.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm px-4" style="border-radius:20px;font-family:Inter;font-weight:600">
+                        <i class="fas fa-times-circle me-1"></i> Confirmer l'annulation
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{% for demande in demandes %}
+{% if demande.statut == 'en_attente' %}
+<div class="modal fade" id="annulerModal{{ demande.id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;overflow:hidden;font-family:Inter">
+            <div class="modal-header" style="background:#e74c3c;color:white">
+                <h6 class="modal-title" style="font-family:Manrope;font-weight:700">
+                    <i class="fas fa-times-circle me-2"></i> Annuler la demande #{{ demande.id }}
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-1">Voulez-vous vraiment annuler cette demande ?</p>
+                <p class="text-muted small">Cette action est irreversible.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal" style="border-radius:20px">Fermer</button>
+                <form method="post" action="{% url 'annuler_demande' demande.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm px-4" style="border-radius:20px;font-weight:600">
+                        <i class="fas fa-times-circle me-1"></i> Confirmer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+<script src="{% static 'js/animations.js' %}"></script>
 </body>
 </html>

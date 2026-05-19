@@ -1,3 +1,4 @@
+{% load static %}
 ﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -29,6 +30,7 @@
         .action-reservation_creee { background:#cce5ff; color:#004085; }
         .action-reservation_annulee { background:#f8d7da; color:#721c24; }
     </style>
+<link rel="stylesheet" href="{% static 'css/animations.css' %}">
 </head>
 <body>
 <nav class="navbar navbar-dark bg-custom">
@@ -142,5 +144,6 @@
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/animations.js' %}"></script>
 </body>
 </html>
