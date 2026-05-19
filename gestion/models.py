@@ -16,6 +16,7 @@ class Utilisateur(AbstractUser):
     filiere = models.CharField(max_length=100, blank=True, null=True)
     niveau = models.CharField(max_length=50, blank=True, null=True)
     telephone = models.CharField(max_length=15, blank=True, null=True)
+    photo_profil = models.ImageField(upload_to='profil_photos/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.username} - {self.get_role_display()}"

@@ -149,7 +149,7 @@
                         <!-- Matériel -->
                         <div class="mb-3">
                             <label class="form-label fw-semibold"><i class="fas fa-microchip me-1"></i> Matériel *</label>
-                            <select name="materiel" id="materielSelect" class="form-select" required onchange="loadReservations(this.value)">
+                            <select name="materiel" id="materielSelect" class="form-select" required >
                                 <option value="">Sélectionner un matériel</option>
                                 {% for materiel in materiels %}
                                     <option value="{{ materiel.id }}"
@@ -162,11 +162,7 @@
                             </select>
                         </div>
 
-                        <!-- Alerte conflit -->
-                        <div id="conflictAlert" class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <span id="conflictMessage"></span>
-                        </div>
+
 
                         <!-- Disponibilité -->
                         <div id="disponibiliteSection" style="display:none;" class="mb-3">
@@ -181,31 +177,11 @@
                             </div>
                         </div>
 
-                        <!-- Calendrier -->
-                        <div id="calendarSection" style="display:none;" class="mb-3">
-                            <label class="form-label fw-semibold"><i class="fas fa-calendar-alt me-1"></i> Calendrier des disponibilités</label>
-                            <div class="calendar-container">
-                                <div class="calendar-header">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="prevMonth()"><i class="fas fa-chevron-left"></i></button>
-                                    <strong id="calendarTitle"></strong>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="nextMonth()"><i class="fas fa-chevron-right"></i></button>
-                                </div>
-                                <div class="calendar-grid" id="calendarGrid"></div>
-                                <div class="legend">
-                                    <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div> Réservé</div>
-                                    <div class="legend-item"><div class="legend-dot" style="background:#2c3e50"></div> Votre sélection</div>
-                                    <div class="legend-item"><div class="legend-dot" style="background:#ccc"></div> Passé</div>
-                                    <div class="legend-item"><div class="legend-dot" style="border:2px solid #2c3e50;background:white"></div> Aujourd'hui</div>
-                                </div>
-                                <p class="text-muted small mt-2"><i class="fas fa-hand-pointer"></i> Cliquez sur une date de début puis une date de fin</p>
-                            </div>
-                        </div>
-
                         <!-- Dates -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-semibold"><i class="fas fa-calendar-alt me-1"></i> Date de debut *</label>
-                                <input type="date" name="date_debut" id="date_debut" class="form-control" required onchange="checkConflict()">
+                                <input type="date" name="date_debut" id="date_debut" class="form-control" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-semibold"><i class="fas fa-clock me-1"></i> Heure de debut *</label>
@@ -213,7 +189,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-semibold"><i class="fas fa-calendar-alt me-1"></i> Date de fin *</label>
-                                <input type="date" name="date_fin" id="date_fin" class="form-control" required onchange="checkConflict()">
+                                <input type="date" name="date_fin" id="date_fin" class="form-control" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-semibold"><i class="fas fa-clock me-1"></i> Heure de fin *</label>
@@ -465,49 +441,8 @@ function forwardGeocode(query) {
 
 let currentYear  = new Date().getFullYear();
 let currentMonth = new Date().getMonth();
-let reservations = [];
-let selectingStart = true;
-let selectedStart  = null;
-let selectedEnd    = null;
 const today = new Date(); today.setHours(0,0,0,0);
 const dayNames = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
-
-function loadReservations(materielId) {
-    if (!materielId) {
-        document.getElementById('calendarSection').style.display = 'none';
-        document.getElementById('disponibiliteSection').style.display = 'none';
-        return;
-    }
-    fetch(`/materiel/${materielId}/reservations/`)
-        .then(r => r.json())
-        .then(data => {
-            reservations = data.reservations || [];
-            document.getElementById('calendarSection').style.display = 'block';
-            document.getElementById('disponibiliteSection').style.display = 'block';
-            updateDisponibilite(data);
-            renderCalendar();
-            checkConflict();
-        });
-}
-
-function updateDisponibilite(data) {
-    const bar  = document.getElementById('disponibiliteBar');
-    const text = document.getElementById('disponibiliteText');
-    const total = data.quantite_totale || 1;
-    const reserveeNow = reservations.filter(r => {
-        const d = new Date(r.debut), f = new Date(r.fin);
-        return d <= today && f >= today;
-    }).reduce((acc, r) => acc + r.quantite, 0);
-    const dispo = total - reserveeNow;
-    const pct = Math.max(0, (dispo / total) * 100);
-    bar.style.width = pct + '%';
-    bar.className = 'progress-bar ' + (pct > 50 ? 'bg-success' : pct > 0 ? 'bg-warning' : 'bg-danger');
-    text.textContent = `${dispo} sur ${total} disponible(s) aujourd'hui`;
-}
-
-function isReserved(date) {
-    return reservations.some(r => date >= new Date(r.debut) && date <= new Date(r.fin));
-}
 
 function renderCalendar() {
     const grid  = document.getElementById('calendarGrid');
@@ -598,30 +533,6 @@ function nextMonth() {
     if (currentMonth > 11) { currentMonth = 0; currentYear++; }
     renderCalendar();
 }
-
-function checkConflict() {
-    const debut = document.getElementById('date_debut').value;
-    const fin   = document.getElementById('date_fin').value;
-    if (!debut || !fin || reservations.length === 0) { hideConflict(); return; }
-    const dateDebut = new Date(debut), dateFin = new Date(fin);
-    if (dateFin <= dateDebut) { showConflict('La date de fin doit être après la date de début.'); return; }
-    const conflict = reservations.some(r => {
-        return dateDebut <= new Date(r.fin) && dateFin >= new Date(r.debut);
-    });
-    if (conflict) showConflict('Ce matériel est déjà réservé sur une partie de cette période.');
-    else hideConflict();
-}
-
-function showConflict(msg) {
-    document.getElementById('conflictMessage').textContent = msg;
-    document.getElementById('conflictAlert').style.display = 'block';
-    document.getElementById('submitBtn').disabled = true;
-}
-function hideConflict() {
-    document.getElementById('conflictAlert').style.display = 'none';
-    document.getElementById('submitBtn').disabled = false;
-}
-
 
 function changeQte(delta) {
     const input = document.getElementById('quantiteInput');

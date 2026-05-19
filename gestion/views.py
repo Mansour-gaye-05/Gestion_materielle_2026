@@ -51,25 +51,32 @@ def accueil(request):
 def catalogue(request):
     materiels = Materiel.objects.all()
     categories = Categorie.objects.all()
-
     cat_id = request.GET.get('categorie')
     if cat_id:
         materiels = materiels.filter(categorie_id=cat_id)
         categorie_selected = cat_id
     else:
         categorie_selected = None
-
     recherche = request.GET.get('recherche')
     if recherche:
         materiels = materiels.filter(nom__icontains=recherche)
-
     etat = request.GET.get('etat')
-    if etat:
+    if etat == 'disponible':
+        materiels = materiels.filter(quantite_disponible__gt=0)
+        etat_selected = etat
+    elif etat:
         materiels = materiels.filter(etat=etat)
         etat_selected = etat
     else:
         etat_selected = None
-
+    # Synchroniser etat avec quantite_disponible
+    for m in Materiel.objects.all():
+        if m.quantite_disponible > 0 and m.etat == 'emprunte':
+            m.etat = 'disponible'
+            m.save()
+        elif m.quantite_disponible == 0 and m.etat not in ['maintenance', 'hors_service']:
+            m.etat = 'emprunte'
+            m.save()
     context = {
         'materiels': materiels,
         'categories': categories,
@@ -78,8 +85,6 @@ def catalogue(request):
         'etat_selected': etat_selected,
     }
     return render(request, 'catalogue.html', context)
-
-@login_required
 def ajouter_demande(request, materiel_id):
     materiel = get_object_or_404(Materiel, id=materiel_id)
 
@@ -842,7 +847,7 @@ def inscription(request):
                 )
                 login(request, utilisateur)
                 log_action(request, 'inscription', f"Nouveau compte cree : {username} ({filiere} - {niveau})")
-                messages.success(request, f'Bienvenue {username} ! Votre compte est cr .')
+                messages.success(request, f'Bienvenue {username} ! Votre compte a ete cree avec succes.')
                 return redirect('espace_etudiant')
             else:
                 messages.error(request, 'Ce nom d\'utilisateur existe d j ')
@@ -1001,6 +1006,11 @@ def annuler_demande(request, demande_id):
     if demande.statut == 'en_attente':
         demande.statut = 'annulee'
         demande.save()
+        for ligne in demande.lignes.all():
+            ligne.materiel.quantite_disponible = min(ligne.materiel.quantite_totale, ligne.materiel.quantite_disponible + ligne.quantite)
+            if ligne.materiel.quantite_disponible > 0:
+                ligne.materiel.etat = 'disponible'
+            ligne.materiel.save()
         log_action(request, 'demande_annulee',
             f"{request.user.username} a annule la demande #{demande.id}",
             demande=demande)
@@ -1016,6 +1026,11 @@ def annuler_demande(request, demande_id):
     if demande.statut == 'en_attente':
         demande.statut = 'annulee'
         demande.save()
+        for ligne in demande.lignes.all():
+            ligne.materiel.quantite_disponible = min(ligne.materiel.quantite_totale, ligne.materiel.quantite_disponible + ligne.quantite)
+            if ligne.materiel.quantite_disponible > 0:
+                ligne.materiel.etat = 'disponible'
+            ligne.materiel.save()
         log_action(request, 'demande_annulee',
             f"{request.user.username} a annule la demande #{demande.id}",
             demande=demande)
@@ -1058,7 +1073,9 @@ def rendre_materiel(request, demande_id):
         demande.save()
 
         for ligne in demande.lignes.all():
-            ligne.materiel.etat = 'disponible'
+            ligne.materiel.quantite_disponible = min(ligne.materiel.quantite_totale, ligne.materiel.quantite_disponible + ligne.quantite)
+            if ligne.materiel.quantite_disponible > 0:
+                ligne.materiel.etat = 'disponible'
             ligne.materiel.save()
 
             #   log_action d plac  ici, apr s que 'ligne' est d finie
@@ -1102,6 +1119,9 @@ def recuperer_materiel(request, demande_id):
 
         for ligne in demande.lignes.all():
             ligne.materiel.etat = 'emprunte'
+            ligne.materiel.quantite_disponible = max(0, ligne.materiel.quantite_disponible - ligne.quantite)
+            if ligne.materiel.quantite_disponible == 0:
+                ligne.materiel.etat = 'emprunte'
             ligne.materiel.save()
             log_action(request, 'materiel_recupere', f"{request.user.username} a remis '{ligne.materiel.nom}' a {demande.utilisateur.username}", materiel=ligne.materiel, demande=demande)
             Notification.objects.create(
@@ -1154,8 +1174,10 @@ def profil_etudiant(request):
         request.user.telephone = request.POST.get('telephone')
         request.user.filiere = request.POST.get('filiere')
         request.user.niveau = request.POST.get('niveau')
+        if 'photo_profil' in request.FILES:
+            request.user.photo_profil = request.FILES['photo_profil']
         request.user.save()
-        messages.success(request, 'Profil mis   jour !')
+        messages.success(request, 'Profil mis a jour !')
         return redirect('profil_etudiant')
 
     return render(request, 'profil_etudiant.html')
@@ -1650,3 +1672,33 @@ def changer_mot_de_passe(request):
             return redirect('profil_etudiant')
 
     return redirect('profil_etudiant')
+
+
+# ==================== ANNULER DEMANDE ====================
+
+@login_required
+def annuler_demande(request, demande_id):
+    demande = get_object_or_404(Demande, id=demande_id, utilisateur=request.user)
+
+    if demande.statut in ['en_attente', 'approuvee']:
+        ancien_statut = demande.statut
+        demande.statut = 'refusee'
+        demande.motif_refus = f"Annulee par l etudiant le {timezone.now().strftime('%d/%m/%Y a %H:%M')}"
+        demande.save()
+
+        # Remettre le materiel disponible si approuvee
+        if ancien_statut == 'approuvee':
+            for ligne in demande.lignes.all():
+                ligne.materiel.etat = 'disponible'
+                ligne.materiel.save()
+
+        # Annuler la reservation
+        from .models import Reservation
+        Reservation.objects.filter(demande=demande).update(statut='annulee')
+
+        log_action(request, 'demande_refusee', f"{request.user.username} a annule sa demande #{demande.id}", demande=demande)
+        messages.success(request, f'Demande #{demande.id} annulee avec succes.')
+    else:
+        messages.error(request, 'Cette demande ne peut pas etre annulee.')
+
+    return redirect('mes_demandes')
