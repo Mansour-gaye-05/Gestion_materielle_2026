@@ -1,10 +1,10 @@
-﻿// ═══════════════════════════════════════
+// ---------------------------------------
 // ANIMATIONS JS GLOBALES - UFR Sciences
-// ═══════════════════════════════════════
+// ---------------------------------------
 
 document.addEventListener('DOMContentLoaded', function () {
 
-  // ── Scroll animations ──────────────────
+  // -- Scroll animations ------------------
   const scrollEls = document.querySelectorAll('.scroll-anim, .scroll-anim-left, .scroll-anim-scale');
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry, i) => {
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }, { threshold: 0.12 });
   scrollEls.forEach(el => observer.observe(el));
 
-  // ── Navbar scrolled ────────────────────
+  // -- Navbar scrolled --------------------
   const navbar = document.querySelector('.topbar, .navbar');
   if (navbar) {
     window.addEventListener('scroll', () => {
@@ -24,21 +24,20 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ── Ripple effect sur boutons ──────────
+  // -- Ripple effect sur boutons ----------
   document.querySelectorAll('.btn, .btn-action, .btn-hero-primary, .btn-hero-secondary').forEach(btn => {
     btn.addEventListener('click', function (e) {
       const ripple = document.createElement('span');
       const rect = this.getBoundingClientRect();
       const size = Math.max(rect.width, rect.height);
-      ripple.style.cssText = 
-        position:absolute;border-radius:50%;
-        width:px;height:px;
-        left:px;
-        top:px;
-        background:rgba(255,255,255,0.35);
-        transform:scale(0);animation:ripple 0.5s ease-out;
-        pointer-events:none;
-      ;
+      ripple.style.cssText =
+    `position:absolute;border-radius:50%;
+    width:${size}px;height:${size}px;
+    left:${rect.left + rect.width/2 - size/2}px;
+    top:${rect.top + rect.height/2 - size/2}px;
+    background:rgba(255,255,255,0.35);
+    transform:scale(0);animation:ripple 0.5s ease-out;
+    pointer-events:none;`;
       if (!this.style.position || this.style.position === 'static') {
         this.style.position = 'relative';
         this.style.overflow = 'hidden';
@@ -48,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // ── Ripple keyframe ────────────────────
+  // -- Ripple keyframe --------------------
   if (!document.getElementById('ripple-style')) {
     const style = document.createElement('style');
     style.id = 'ripple-style';
@@ -56,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.head.appendChild(style);
   }
 
-  // ── Shake sur erreurs formulaire ───────
+  // -- Shake sur erreurs formulaire -------
   document.querySelectorAll('form').forEach(form => {
     form.addEventListener('submit', function () {
       const invalids = this.querySelectorAll(':invalid');
@@ -67,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // ── Counter animation ──────────────────
+  // -- Counter animation ------------------
   document.querySelectorAll('[data-count]').forEach(el => {
     const target = parseInt(el.getAttribute('data-count'));
     let current = 0;
@@ -79,13 +78,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 30);
   });
 
-  // ── Fade in cards avec délai ───────────
+  // -- Fade in cards avec d�lai -----------
   document.querySelectorAll('.demande-card, .card, .access-card').forEach((card, i) => {
     card.style.animationDelay = (i * 0.08) + 's';
     card.classList.add('anim-up');
   });
 
-  // ── Loader page ────────────────────────
+  // -- Loader page ------------------------
   document.body.style.opacity = '0';
   document.body.style.transition = 'opacity 0.35s ease';
   requestAnimationFrame(() => {
@@ -94,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 
-// ── Transition entre pages ─────────────
+// -- Transition entre pages -------------
 document.querySelectorAll('a:not([target="_blank"]):not([href^="#"]):not([href^="mailto"])').forEach(link => {
   link.addEventListener('click', function (e) {
     const href = this.getAttribute('href');
@@ -105,3 +104,4 @@ document.querySelectorAll('a:not([target="_blank"]):not([href^="#"]):not([href^=
     }
   });
 });
+

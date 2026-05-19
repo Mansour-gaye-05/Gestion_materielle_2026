@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon profil - UFR Sciences</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #2c3e50; --accent: #3498db; --success: #27ae60; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f0f2f5; margin: 0; padding-bottom: 40px; }
+        h1,h2,h3,h4,h5,h6 { font-family: 'Manrope', sans-serif; }
+
+        /* TOPBAR */
+        .topbar { background: var(--primary); height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .topbar-brand { font-family: 'Manrope', sans-serif; font-weight: 800; color: white; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+        .btn-icon { width: 34px; height: 34px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; font-size: 0.82rem; transition: all 0.2s; }
+        .btn-icon:hover { background: rgba(255,255,255,0.2); color: white; }
+
+        /* AVATAR */
+        .avatar-circle { width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Manrope', sans-serif; font-size: 2rem; font-weight: 800; color: white; margin: 0 auto 12px; }
+
+        /* CARDS */
+        .profile-card { background: white; border-radius: 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); overflow: hidden; margin-bottom: 16px; animation: fadeInUp 0.5s ease forwards; }
+        .profile-card-header { background: var(--primary); color: white; padding: 14px 20px; font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+        .profile-card-body { padding: 20px; }
+
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        .delay-1 { animation-delay: 0.1s; opacity:0; }
+        .delay-2 { animation-delay: 0.2s; opacity:0; }
+
+        /* FORM */
+        .form-label { font-size: 0.8rem; font-weight: 600; color: #555; margin-bottom: 4px; }
+        .form-control, .form-select { border-radius: 10px; border: 1px solid #e0e0e0; font-size: 0.88rem; padding: 9px 14px; font-family: 'Inter', sans-serif; transition: border-color 0.2s; }
+        .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(44,62,80,0.1); }
+        .form-control:disabled { background: #f8f9fa; color: #888; }
+        .input-group .form-control { border-radius: 10px 0 0 10px !important; }
+        .input-group .btn { border-radius: 0 10px 10px 0 !important; border-color: #e0e0e0; color: #666; }
+        .input-group .btn:hover { background: #f0f2f5; }
+
+        /* BTN */
+        .btn-submit { background: var(--primary); color: white; border: none; border-radius: 25px; padding: 10px 30px; font-weight: 700; font-family: 'Inter', sans-serif; font-size: 0.88rem; transition: all 0.2s; width: 100%; }
+        .btn-submit:hover { background: #1a252f; color: white; transform: translateY(-2px); }
+        .btn-submit-danger { background: #e74c3c; }
+        .btn-submit-danger:hover { background: #c0392b; }
+
+        /* PASSWORD STRENGTH */
+        .pwd-strength { height: 4px; border-radius: 2px; margin-top: 6px; transition: all 0.3s; }
+        .pwd-hint { font-size: 0.72rem; color: #888; margin-top: 4px; }
+
+        .alert { border-radius: 12px; font-size: 0.83rem; }
+    </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+    <div class="topbar-brand"><i class="fas fa-user-circle"></i> Mon profil</div>
+    <a href="{% url 'espace_etudiant' %}" class="btn-icon" title="Retour"><i class="fas fa-arrow-left"></i></a>
+</div>
+
+<div class="container mt-4" style="max-width:600px">
+
+    {% if messages %}{% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show py-2">
+        {{ message }}<button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}{% endif %}
+
+    <!-- AVATAR + NOM -->
+    <div class="text-center mb-4">
+        {% if user.photo_profil %}
+            <img src="{{ user.photo_profil.url }}" alt="Photo profil"
+                 style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--primary);margin-bottom:12px">
+        {% else %}
+            <div class="avatar-circle">{{ user.username|first|upper }}</div>
+        {% endif %}
+        <h5 style="font-family:Manrope;font-weight:800;color:var(--primary)">{{ user.username }}</h5>
+        <span class="badge" style="background:var(--accent);border-radius:12px;font-size:0.72rem">{{ user.get_role_display }}</span>
+    </div>
+
+    <!-- INFOS PERSONNELLES -->
+    <div class="profile-card">
+        <div class="profile-card-header"><i class="fas fa-user"></i> Informations personnelles</div>
+        <div class="profile-card-body">
+            <form method="post" action="{% url 'profil_etudiant' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-user me-1"></i> Nom d'utilisateur</label>
+                    <input type="text" class="form-control" value="{{ user.username }}" disabled>
+                    <small class="text-muted" style="font-size:0.72rem">Le nom d'utilisateur ne peut pas etre modifie</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-envelope me-1"></i> Email universitaire</label>
+                    <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-phone me-1"></i> Telephone</label>
+                    <input type="tel" name="telephone" class="form-control" value="{{ user.telephone|default:'' }}" placeholder="+221 XX XXX XX XX">
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label"><i class="fas fa-graduation-cap me-1"></i> Filiere</label>
+                        <select name="filiere" class="form-select">
+                            <option value="">Selectionner</option>
+                            <option value="Topographie" {% if user.filiere == 'Topographie' %}selected{% endif %}>Topographie</option>
+                            <option value="Geomatique" {% if user.filiere == 'Geomatique' or user.filiere == 'Géomatique' %}selected{% endif %}>Geomatique</option>
+                            <option value="Geometre" {% if user.filiere == 'Geometre' %}selected{% endif %}>Geometre</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label"><i class="fas fa-chart-line me-1"></i> Niveau</label>
+                        <select name="niveau" class="form-select">
+                            <option value="">Selectionner</option>
+                            <option {% if user.niveau == 'Licence 1' %}selected{% endif %} value="Licence 1">Licence 1</option>
+                            <option {% if user.niveau == 'Licence 2' %}selected{% endif %} value="Licence 2">Licence 2</option>
+                            <option {% if user.niveau == 'Licence 3' %}selected{% endif %} value="Licence 3">Licence 3</option>
+                            <option {% if user.niveau == 'Master 1' %}selected{% endif %} value="Master 1">Master 1</option>
+                            <option {% if user.niveau == 'Master 2' %}selected{% endif %} value="Master 2">Master 2</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-camera me-1"></i> Photo de profil</label>
+                    <input type="file" name="photo_profil" class="form-control" accept="image/*" onchange="previewPhoto(this)" style="border-radius:10px">
+                    <div id="photoPreview" class="mt-2 text-center" style="display:none">
+                        <img id="previewImg" src="" alt="Preview" style="width:70px;height:70px;border-radius:50%;object-fit:cover;border:3px solid var(--primary)">
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-save me-2"></i> Mettre a jour le profil
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- CHANGER MOT DE PASSE -->
+    <div class="profile-card delay-1">
+        <div class="profile-card-header"><i class="fas fa-lock"></i> Changer le mot de passe</div>
+        <div class="profile-card-body">
+            <form method="post" action="{% url 'changer_mot_de_passe' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-key me-1"></i> Ancien mot de passe</label>
+                    <div class="input-group">
+                        <input type="password" name="ancien_mdp" class="form-control" required placeholder="Votre mot de passe actuel">
+                        <button type="button" class="btn btn-outline-secondary" onclick="togglePwd(this)" tabindex="-1">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-lock me-1"></i> Nouveau mot de passe</label>
+                    <div class="input-group">
+                        <input type="password" name="nouveau_mdp" id="newPwd" class="form-control" required placeholder="Minimum 6 caracteres" oninput="checkStrength(this.value)">
+                        <button type="button" class="btn btn-outline-secondary" onclick="togglePwd(this)" tabindex="-1">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="pwd-strength" id="pwdStrength" style="background:#eee;width:0%"></div>
+                    <div class="pwd-hint" id="pwdHint"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-lock me-1"></i> Confirmer le nouveau mot de passe</label>
+                    <div class="input-group">
+                        <input type="password" name="confirmer_mdp" id="confirmPwd" class="form-control" required placeholder="Repetez le nouveau mot de passe" oninput="checkMatch()">
+                        <button type="button" class="btn btn-outline-secondary" onclick="togglePwd(this)" tabindex="-1">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="pwd-hint" id="matchHint"></div>
+                </div>
+                <button type="submit" class="btn-submit btn-submit-danger">
+                    <i class="fas fa-shield-alt me-2"></i> Changer le mot de passe
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewPhoto(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('photoPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function togglePwd(btn) {
+    const input = btn.closest('.input-group').querySelector('input');
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
+function checkStrength(val) {
+    const bar = document.getElementById('pwdStrength');
+    const hint = document.getElementById('pwdHint');
+    let strength = 0;
+    if (val.length >= 6) strength++;
+    if (val.length >= 10) strength++;
+    if (/[A-Z]/.test(val)) strength++;
+    if (/[0-9]/.test(val)) strength++;
+    if (/[^A-Za-z0-9]/.test(val)) strength++;
+
+    const levels = [
+        { w: '20%', c: '#e74c3c', t: 'Tres faible' },
+        { w: '40%', c: '#e67e22', t: 'Faible' },
+        { w: '60%', c: '#f39c12', t: 'Moyen' },
+        { w: '80%', c: '#3498db', t: 'Fort' },
+        { w: '100%', c: '#27ae60', t: 'Tres fort' },
+    ];
+    const l = levels[Math.max(0, strength - 1)];
+    bar.style.width = val.length > 0 ? l.w : '0%';
+    bar.style.background = l.c;
+    hint.textContent = val.length > 0 ? 'Force : ' + l.t : '';
+    hint.style.color = l.c;
+}
+
+function checkMatch() {
+    const pwd = document.getElementById('newPwd').value;
+    const confirm = document.getElementById('confirmPwd').value;
+    const hint = document.getElementById('matchHint');
+    if (confirm.length === 0) { hint.textContent = ''; return; }
+    if (pwd === confirm) {
+        hint.textContent = 'Les mots de passe correspondent';
+        hint.style.color = '#27ae60';
+    } else {
+        hint.textContent = 'Les mots de passe ne correspondent pas';
+        hint.style.color = '#e74c3c';
+    }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

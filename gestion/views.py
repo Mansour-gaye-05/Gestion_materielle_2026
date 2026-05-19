@@ -1168,6 +1168,51 @@ def signaler_panne_emprunt(request, demande_id):
 
 
 @login_required
+def signaler_panne_page(request, demande_id):
+    """Page dédiée pour signaler une panne (contourne le modal)"""
+    from .models import Demande, Maintenance
+    from django.contrib import messages
+    from django.shortcuts import redirect, render, get_object_or_404
+
+    demande = get_object_or_404(Demande, id=demande_id, utilisateur=request.user)
+
+    if demande.statut != 'en_cours':
+        messages.error(request, 'Seules les demandes en cours peuvent signaler une panne.')
+        return redirect('mes_demandes')
+
+    if request.method == 'POST':
+        description = request.POST.get('description', '')
+
+        if not description:
+            messages.error(request, 'Veuillez décrire la panne.')
+            return render(request, 'signaler_panne.html', {'demande': demande})
+
+        for ligne in demande.lignes.all():
+            Maintenance.objects.create(
+                materiel=ligne.materiel,
+                type='panne',
+                description=f"{description} (signalé par {request.user.username} le {timezone.now().strftime('%d/%m/%Y')})",
+                statut='signale'
+            )
+            ligne.materiel.etat = 'maintenance'
+            ligne.materiel.save()
+
+            log_action(request, 'panne_signalee',
+                       f"{request.user.username} a signalé une panne sur '{ligne.materiel.nom}' : {description[:100]}",
+                       materiel=ligne.materiel)
+
+            Notification.objects.create(
+                message=f"🚨 Panne sur le terrain - {request.user.username} signale: {description[:100]}",
+                type='maintenance'
+            )
+
+        messages.warning(request, '✅ Panne signalée avec succès ! Un technicien va prendre en charge le matériel.')
+        return redirect('mes_demandes')
+
+    return render(request, 'signaler_panne.html', {'demande': demande})
+
+
+@login_required
 def profil_etudiant(request):
     if request.method == 'POST':
         request.user.email = request.POST.get('email')
@@ -1205,15 +1250,25 @@ def chatbot_message(request):
             defaults={"messages": []}
         )
 
-        historique = conversation.messages[-10:]
+        historique = conversation.messages[-20:]
 
         # Detecter automatiquement le mode selon le message
         msg_lower = user_message.lower()
-        mots_panne = ["allume", "marche", "fonctionne", "bloque", "erreur", "probleme", "panne", "tombe", "casse", "bug", "ecran", "batterie", "charge", "signal", "gps", "fixe", "plante", "freeze"]
-        mots_suggestion = ["recommande", "conseil", "choisir", "quel materiel", "besoin", "leve", "topographique", "mission", "terrain", "projet", "cadastre", "implantation", "nivellement", "bathymetrie"]
-        mots_procedure = ["emprunter", "restituer", "rendre", "recuperer", "demande", "reservation", "disponible", "reserver"]
+        mots_panne = ["allume", "marche", "fonctionne", "bloque", "erreur", "probleme", "panne", "tombe", "casse", "ecran", "batterie", "signal", "freeze"]
+        mots_suggestion = ["recommande", "conseil", "choisir", "quel materiel", "mission", "terrain", "leve", "cadastre", "implantation", "nivellement"]
+        mots_procedure = ["emprunter", "restituer", "rendre", "recuperer", "demande", "reservation", "comment faire"]
+        mots_ameliorer = ["ameliore", "ameliorer", "plus detail", "plus precis", "developpe", "approfondi", "explique mieux", "plus complet", "detaille", "autre facon", "reformule", "precisement", "peux tu developper"]
 
-        if any(m in msg_lower for m in mots_panne):
+        # Récupérer la dernière réponse de l'assistant (si elle existe)
+        derniere_reponse_assistant = ""
+        for msg in reversed(historique):
+            if "bot" in msg:
+                derniere_reponse_assistant = msg.get("bot", "")
+                break
+
+        if any(m in msg_lower for m in mots_ameliorer):
+            detected_mode = "amelioration"
+        elif any(m in msg_lower for m in mots_panne):
             detected_mode = "diagnostic"
         elif any(m in msg_lower for m in mots_suggestion):
             detected_mode = "suggestion"
@@ -1222,97 +1277,84 @@ def chatbot_message(request):
         else:
             detected_mode = mode
 
-        # Construire le prompt systeme selon le mode
-        base_context = """Tu es un assistant expert en materiel topographique de l'UFR Sciences de l'Ingenieur, Universite de Thies, Senegal.
-Le laboratoire dispose de : Stations totales Leica TS16, GPS GNSS differentiel i50/i73, Niveaux optiques electroniques, GPS Garmin de poche.
+        system_prompt = """Tu es un assistant expert en materiel topographique de l'UFR Sciences de l'Ingenieur, Universite de Thies, Senegal.
+
+Materiels disponibles : Stations totales Leica TS16, GPS GNSS differentiel i50/i73, Niveaux optiques electroniques, GPS Garmin de poche.
 
 REGLES ABSOLUES :
-- Reponds UNIQUEMENT sur le materiel topographique, les emprunts, les pannes, les procedures du laboratoire
-- Si hors-sujet : decline poliment et propose des sujets disponibles
-- Toujours en francais, structure et concis
-- Utilise des emojis pour rendre la reponse claire"""
+- Reponds UNIQUEMENT sur le materiel topographique, les emprunts, les pannes, les procedures
+- Si hors-sujet : decline poliment
+- Toujours en francais, structure, concis
+- Utilise des emojis pertinents
+- TU AS UNE MEMOIRE : utilise TOUJOURS l'historique de la conversation pour contextualiser tes reponses"""
 
-        if detected_mode == "diagnostic":
-            system_prompt = base_context + """
+        if detected_mode == "amelioration":
+            system_prompt += f"""
 
-MODE DIAGNOSTIC DE PANNE :
-Quand l'utilisateur decrit un probleme, tu dois :
-1. Identifier l'appareil concerne
-2. Proposer les causes probables (du plus simple au plus complexe)
-3. Donner les solutions etape par etape
-4. Indiquer si une intervention technicien est necessaire
+MODE AMELIORATION - INSTRUCTION TRES IMPORTANTE :
+L'utilisateur te demande d'AMELIORER ou de PRECISER ta derniere reponse.
 
-Structure ta reponse ainsi :
-  DIAGNOSTIC : [nom appareil]
-  Causes probables :
-  1. [cause la plus probable]
-  2. [autre cause]
-  Solutions a essayer :
-    Etape 1 : [action simple]
-    Etape 2 : [action suivante]
-  Si le probleme persiste : Signalez via l'application > "Signaler une panne"
+Voici ta DERNIERE REPONSE (celle que tu dois ameliorer) :
+---
+{derniere_reponse_assistant}
+---
 
-Connaissances pannes specifiques :
-- Station totale qui s'eteint : batterie faible, contactes sales, surchauffe
-- GPS sans signal : masque ciel insuffisant, initialisation RTK manquante, antenne debranchee
-- Niveau optique qui derive : mise en station incorrecte, bulle non centree, vis calantes
-- Ecran noir : batterie decharge, reset necessaire (maintenir power 10s)
-- Erreur de mesure anormale : prismes sales, calibration requise, refraction atmospherique"""
+CE QUE TU DOIS FAIRE ABSOLUMENT :
+1. Ne reponds PAS a une nouvelle question
+2. Prends UNIQUEMENT la reponse ci-dessus et AMELIORE-LA
+3. Ajoute des details techniques precis (chiffres, specifications, protocoles)
+4. Donne des exemples concrets d'utilisation sur le terrain
+5. Ajoute des precautions ou astuces pratiques
+6. Structure ta nouvelle reponse differemment (utilise des listes, des emojis)
+7. Soit PLUS LONG et PLUS COMPLET que la version precedente
+
+IMPORTANT : Si l'utilisateur a pose une question avant, c'est DEJA dans l'historique. Concentre-toi UNIQUEMENT sur l'amelioration de ta reponse ci-dessus."""
+
+        elif detected_mode == "diagnostic":
+            system_prompt += """
+
+MODE DIAGNOSTIC :
+🔍 DIAGNOSTIC : [appareil]
+📋 Causes probables (de la plus simple a la plus complexe) :
+   1. [cause 1]
+   2. [cause 2]
+🔧 Solutions etape par etape :
+   Etape 1 : [action]
+   Etape 2 : [action]
+🚨 Si persiste : Signalez via l'application"""
 
         elif detected_mode == "suggestion":
-            system_prompt = base_context + """
+            system_prompt += """
 
-MODE SUGGESTIONS INTELLIGENTES :
-Quand l'utilisateur decrit sa mission ou son besoin, recommande le materiel optimal.
-
-Structure ta reponse ainsi :
-  MISSION : [type de travail detecte]
-  MATERIEL RECOMMANDE :
-    Principal : [materiel 1] - [pourquoi]
-    Complementaire : [materiel 2] - [pourquoi]
-    Accessoires : [liste]
-  CONSEILS TERRAIN :
-  - [conseil 1]
-  - [conseil 2]
-  Duree recommandee d'emprunt : [X jours]
-
-Recommandations selon mission :
-- Leve topographique general : Station totale + GPS GNSS
-- Cadastre/foncier : Station totale Leica TS16 + tr pied + prismes
-- Implantation : Station totale + mire
-- Nivellement : Niveau optique electronique + mire parlante
-- Bathymetrie : GPS GNSS differentiel + accessoires
-- Reconnaissance rapide : GPS Garmin de poche
-- Grande precision : GPS GNSS RTK i50 ou i73"""
+MODE SUGGESTION :
+📌 MISSION : [type detecte]
+🎯 MATERIEL RECOMMANDE :
+   • [principal] - [raison]
+   • [complement] - [raison]
+💡 CONSEILS TERRAIN :
+   • [conseil pratique 1]
+   • [conseil pratique 2]
+⏱️ Duree recommandee : [X jours]"""
 
         elif detected_mode == "procedure":
-            system_prompt = base_context + """
+            system_prompt += """
 
-MODE PROCEDURE EMPRUNT :
-Guide l'utilisateur sur les procedures du laboratoire.
+MODE PROCEDURE :
+📋 PROCEDURE [action] :
+1. [etape 1]
+2. [etape 2]
+3. [etape 3]"""
 
-Procedures disponibles :
-- Emprunter : Catalogue > choisir materiel > Nouvelle demande > remplir dates + localisation > soumettre > attendre validation admin
-- Recuperer : Espace etudiant > Mes demandes > bouton "Recuperer" (apres approbation admin)
-- Rendre : Espace etudiant > Mes demandes > bouton "Rendre" > materiel restitue
-- Signaler panne : Espace etudiant > Mes demandes > "Signaler panne" sur emprunt en cours
-- Voir reservations : Nouvelle demande > selectionner materiel > calendrier affiche les dates prises
-
-Structure ta reponse avec des etapes numerotees claires."""
-
-        else:
-            system_prompt = base_context + """
-
-Reponds de facon claire et structuree. Utilise des emojis pertinents.
-Si l'utilisateur semble avoir un probleme avec un appareil, propose le mode diagnostic.
-Si l'utilisateur cherche du materiel pour une mission, propose des recommandations."""
-
+        # Construire les messages avec historique
         groq_messages = [{"role": "system", "content": system_prompt}]
 
-        for msg in historique:
-            groq_messages.append({"role": "user", "content": msg["user"]})
-            groq_messages.append({"role": "assistant", "content": msg["bot"]})
+        # Ajouter l'historique (sauf si mode amelioration, on ne veut pas polluer)
+        if detected_mode != "amelioration":
+            for msg in historique[-10:]:
+                groq_messages.append({"role": "user", "content": msg["user"]})
+                groq_messages.append({"role": "assistant", "content": msg["bot"]})
 
+        # Message actuel
         groq_messages.append({"role": "user", "content": user_message})
 
         try:
@@ -1325,18 +1367,20 @@ Si l'utilisateur cherche du materiel pour une mission, propose des recommandatio
                 json={
                     "model": "llama-3.3-70b-versatile",
                     "messages": groq_messages,
-                    "max_tokens": 800,
-                    "temperature": 0.6
+                    "max_tokens": 1000,
+                    "temperature": 0.7,
+                    "top_p": 0.9
                 },
-                timeout=15
+                timeout=20
             )
             if response.status_code == 200:
                 bot_response = response.json()["choices"][0]["message"]["content"]
             else:
                 bot_response = "Erreur de connexion a l'IA. Veuillez reessayer."
         except Exception as e:
-            bot_response = "Service IA temporairement indisponible. Veuillez reessayer."
+            bot_response = f"Service IA temporairement indisponible. Erreur: {str(e)[:100]}"
 
+        # Sauvegarder la conversation
         msgs = conversation.messages
         msgs.append({"user": user_message, "bot": bot_response, "date": str(timezone.now()), "mode": detected_mode})
         conversation.messages = msgs[-50:]

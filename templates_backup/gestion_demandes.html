@@ -46,7 +46,7 @@
                     <tbody>
                         {% for demande in demandes %}
                         <tr>
-                            <td class="ps-3 fw-bold">{{ demande.id }}</td>
+                            <td class="ps-3 fw-bold">##{{ demande.id }}</td>
                             <td>
                                 <strong>{{ demande.utilisateur.username }}</strong><br>
                                 <small class="text-muted">{{ demande.utilisateur.filiere|default:"-" }}</small>

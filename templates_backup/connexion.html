@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion Administrateur - UFR Sciences</title>
+    <title>Connexion - UFR Sciences</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -21,11 +21,12 @@
             position: relative;
             overflow: hidden;
         }
+        /* Cercles decoratifs */
         body::before {
             content: '';
             position: absolute;
             width: 600px; height: 600px;
-            background: radial-gradient(circle, rgba(231,76,60,0.1) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(52,152,219,0.15) 0%, transparent 70%);
             top: -200px; right: -200px;
             border-radius: 50%;
         }
@@ -52,17 +53,15 @@
         }
         .login-logo {
             width: 64px; height: 64px;
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            background: linear-gradient(135deg, #3498db, #2c3e50);
             border-radius: 16px;
             display: flex; align-items: center; justify-content: center;
             margin: 0 auto 20px;
-            box-shadow: 0 8px 20px rgba(231,76,60,0.3);
-            animation: float 3s ease-in-out infinite;
+            box-shadow: 0 8px 20px rgba(52,152,219,0.3);
         }
         .login-logo i { font-size: 1.8rem; color: white; }
         .login-title { font-family: 'Manrope', sans-serif; font-weight: 800; color: white; font-size: 1.6rem; text-align: center; margin-bottom: 6px; }
         .login-subtitle { color: rgba(255,255,255,0.55); font-size: 0.85rem; text-align: center; margin-bottom: 30px; }
-        .admin-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(231,76,60,0.2); border: 1px solid rgba(231,76,60,0.3); color: #e74c3c; padding: 4px 14px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 0 auto 24px; display: flex; justify-content: center; width: fit-content; }
         .form-label { color: rgba(255,255,255,0.8); font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; }
         .form-control {
             background: rgba(255,255,255,0.08);
@@ -75,8 +74,8 @@
         }
         .form-control:focus {
             background: rgba(255,255,255,0.12);
-            border-color: #e74c3c;
-            box-shadow: 0 0 0 3px rgba(231,76,60,0.2);
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
             color: white;
         }
         .form-control::placeholder { color: rgba(255,255,255,0.3); }
@@ -84,28 +83,39 @@
         .input-icon i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4); font-size: 0.85rem; }
         .input-icon .form-control { padding-left: 38px; }
         .btn-login {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            border: none; border-radius: 12px; color: white;
-            font-weight: 700; font-size: 0.95rem; padding: 13px;
-            width: 100%; transition: all 0.3s; font-family: 'Inter', sans-serif; margin-top: 8px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 13px;
+            width: 100%;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+            margin-top: 8px;
         }
-        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(231,76,60,0.4); color: white; }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(52,152,219,0.4); color: white; }
+        .btn-login:active { transform: translateY(0); }
         .alert { border-radius: 12px; font-size: 0.83rem; background: rgba(231,76,60,0.2); border: 1px solid rgba(231,76,60,0.3); color: #e74c3c; }
         .divider { border-color: rgba(255,255,255,0.1); margin: 20px 0; }
-        .link-bottom { text-align: center; color: rgba(255,255,255,0.4); font-size: 0.78rem; }
-        .link-bottom a { color: rgba(255,255,255,0.6); text-decoration: none; }
-        .link-bottom a:hover { color: white; }
+        .link-bottom { text-align: center; color: rgba(255,255,255,0.55); font-size: 0.82rem; }
+        .link-bottom a { color: #3498db; font-weight: 600; text-decoration: none; }
+        .link-bottom a:hover { color: #5dade2; }
+        .admin-link { display: block; text-align: center; margin-top: 12px; color: rgba(255,255,255,0.3); font-size: 0.75rem; text-decoration: none; transition: color 0.2s; }
+        .admin-link:hover { color: rgba(255,255,255,0.6); }
         @keyframes fadeInUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
         @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        .floating { animation: float 3s ease-in-out infinite; }
     </style>
 </head>
 <body>
 <div class="login-card">
-    <div class="login-logo">
-        <i class="fas fa-shield-alt"></i>
+    <div class="login-logo floating">
+        <i class="fas fa-graduation-cap"></i>
     </div>
-    <h1 class="login-title">Espace Admin</h1>
-    <div class="admin-badge"><i class="fas fa-lock"></i> Acces restreint</div>
+    <h1 class="login-title">Bon retour !</h1>
+    <p class="login-subtitle">UFR Sciences de l'Ingenieur ? Universite de Thies</p>
 
     {% if messages %}
     {% for message in messages %}
@@ -113,55 +123,56 @@
     {% endfor %}
     {% endif %}
 
-    <form method="post" autocomplete="off">
+    <form method="post">
         {% csrf_token %}
         <div class="mb-3">
             <label class="form-label">Nom d'utilisateur</label>
             <div class="input-icon">
-                <i class="fas fa-user-shield"></i>
-                <input type="text" name="username" class="form-control" placeholder="Identifiant administrateur" autocomplete="off" required autofocus>
+                <i class="fas fa-user"></i>
+                <input type="text" name="username" class="form-control" placeholder="Votre identifiant" required autofocus>
             </div>
         </div>
         <div class="mb-3">
             <label class="form-label">Mot de passe</label>
-            <div class="input-icon">
-                <i class="fas fa-lock"></i>
-                <div class="input-group">
-                            <input type="password" name="password" class="form-control" placeholder="Mot de passe" autocomplete="off" required>
-                            <button type="button" class="btn btn-outline-secondary" onclick="togglePwd(this)" tabindex="-1" style="border-radius:0 8px 8px 0">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
+            <div class="input-group">
+                <span class="input-group-text" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-right:none;color:rgba(255,255,255,0.4)">
+                    <i class="fas fa-lock"></i>
+                </span>
+                <input type="password" name="password" class="form-control" placeholder="Votre mot de passe" required style="border-left:none">
+                <button type="button" class="btn" onclick="togglePwd(this)" tabindex="-1"
+                        style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-left:none;color:rgba(255,255,255,0.5);border-radius:0 12px 12px 0">
+                    <i class="fas fa-eye"></i>
+                </button>
             </div>
         </div>
         <button type="submit" class="btn-login">
-            <i class="fas fa-sign-in-alt me-2"></i> Acceder au tableau de bord
+            <i class="fas fa-sign-in-alt me-2"></i> Se connecter
         </button>
     </form>
 
     <hr class="divider">
     <p class="link-bottom">
-        <a href="{% url 'accueil' %}"><i class="fas fa-arrow-left me-1"></i> Retour a l'accueil</a>
-        &nbsp;?&nbsp;
-        <a href="{% url 'connexion' %}">Espace etudiant</a>
+        <a href="{% url 'mot_de_passe_oublie' %}" style="color:rgba(255,255,255,0.4);font-size:0.78rem">Mot de passe oublie ?</a><br><br>Pas encore de compte ? <a href="{% url 'inscription' %}">S'inscrire</a>
     </p>
+    <a href="{% url 'connexion_admin' %}" class="admin-link">
+        <i class="fas fa-shield-alt me-1"></i> Acces Administrateur
+    </a>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{% static 'js/animations.js' %}"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const toggleBtn = document.querySelector('[class*="toggle"], [class*="show-password"], [onclick*="toggle"], .btn-eye');
-        const passwordField = document.querySelector('input[type="password"]');
-
-        if (toggleBtn && passwordField) {
-            toggleBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordField.setAttribute('type', type);
-                toggleBtn.textContent = type === 'password' ? '👁️' : '🙈';
-            });
-        }
-    });
+function togglePwd(btn) {
+    const group = btn.closest('.input-group');
+    const input = group.querySelector('input[type="password"], input[type="text"]');
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
 </script>
 </body>
 </html>

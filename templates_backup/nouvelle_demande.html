@@ -1,0 +1,658 @@
+{% load static %}
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nouvelle demande - UFR Sciences</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    // VALIDATION AVANT SOUMISSION - FORCER LA SÉLECTION D'UN LIEU
+    document.getElementById('demandeForm').addEventListener('submit', function(e) {
+        const lat = document.getElementById('latitude').value;
+        const lng = document.getElementById('longitude').value;
+        const adresse = document.getElementById('adresseInput').value;
+        
+        if (!lat || !lng || lat === '' || lng === '') {
+            e.preventDefault();
+            alert('❌ Veuillez sélectionner un lieu sur la carte en cliquant sur la carte ou en utilisant "Ma position"');
+            return false;
+        }
+        
+        if (!adresse || adresse.trim() === '') {
+            e.preventDefault();
+            alert('❌ Veuillez saisir ou valider l\'adresse du lieu d\'utilisation');
+            return false;
+        }
+        
+        console.log('✅ Demande soumise avec lieu:', {lat, lng, adresse});
+    });
+
+    // VALIDATION OBLIGATOIRE DU LIEU AVANT SOUMISSION
+    const form = document.getElementById('demandeForm');
+    const originalSubmit = form.onsubmit;
+    
+    form.onsubmit = function(e) {
+        const lat = document.getElementById('latitude').value;
+        const lng = document.getElementById('longitude').value;
+        const adresse = document.getElementById('adresseInput').value;
+        
+        // Vérifier si l'utilisateur a cliqué sur la carte
+        if (!lat || !lng || lat === '' || lng === '' || lat === '0' || lng === '0') {
+            e.preventDefault();
+            alert('❌ Veuillez cliquer sur la carte pour sélectionner votre lieu d\'utilisation !\n\n1. Cliquez sur la carte ci-dessus\n2. Ou utilisez le bouton "Ma position"\n3. Puis soumettez votre demande');
+            return false;
+        }
+        
+        // Vérifier si l'adresse est remplie
+        if (!adresse || adresse.trim() === '') {
+            e.preventDefault();
+            alert('❌ Veuillez saisir l\'adresse du lieu d\'utilisation');
+            return false;
+        }
+        
+        console.log('✅ Lieu sélectionné:', {lat, lng, adresse});
+        return true;
+    };
+</script>
+    <style>
+        body { background: #f0f2f5; }
+        .bg-custom { background-color: #2c3e50 !important; }
+        .btn-custom { background-color: #2c3e50 !important; border-color: #2c3e50 !important; color: white !important; }
+
+        /* ── Carte ── */
+        #map-wrapper { position: relative; border-radius: 12px; overflow: hidden; border: 1.5px solid #dee2e6; margin-top: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+        #map { height: 340px; }
+
+        /* Barre d'outils flottante */
+        .map-toolbar { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; gap: 6px; background: white; border-radius: 25px; padding: 5px 10px; box-shadow: 0 2px 12px rgba(0,0,0,.15); }
+        .map-tool-btn { border: none; background: none; border-radius: 20px; padding: 4px 10px; font-size: 12px; cursor: pointer; color: #555; transition: all .15s; white-space: nowrap; }
+        .map-tool-btn:hover, .map-tool-btn.active { background: #2c3e50; color: white; }
+        .map-tool-btn i { margin-right: 3px; }
+
+        /* Badge coordonnées */
+        .map-coords-badge { position: absolute; bottom: 10px; left: 10px; z-index: 1000; background: rgba(44,62,80,.85); color: white; border-radius: 8px; padding: 4px 10px; font-size: 11px; font-family: monospace; pointer-events: none; backdrop-filter: blur(4px); }
+
+        /* Bouton localisation */
+        .map-locate-btn { position: absolute; bottom: 10px; right: 10px; z-index: 1000; background: white; border: none; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.2); cursor: pointer; color: #2c3e50; font-size: 16px; }
+        .map-locate-btn:hover { background: #2c3e50; color: white; }
+
+        /* Info adresse */
+        .address-result { background: #eaf4fb; border-left: 3px solid #2980b9; border-radius: 0 8px 8px 0; padding: 6px 12px; font-size: 12px; color: #2c3e50; margin-top: 6px; display: none; }
+        .address-result.visible { display: block; }
+
+        /* Champs lat/lng */
+        .coord-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+        .coord-inputs input { font-size: 12px; font-family: monospace; background: #f8f9fa; }
+
+        /* ── Calendrier (inchangé) ── */
+        .calendar-container { background: #f8f9fa; border-radius: 10px; padding: 15px; margin-top: 10px; }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .calendar-day-name { text-align: center; font-weight: bold; font-size: 11px; color: #666; padding: 4px; }
+        .calendar-day { text-align: center; padding: 6px 2px; font-size: 12px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+        .calendar-day:hover:not(.reserved):not(.past) { background: #d5e8f0; border-color: #2c3e50; }
+        .calendar-day.past { color: #ccc; cursor: not-allowed; }
+        .calendar-day.reserved { background: #e74c3c; color: white; cursor: not-allowed; border-radius: 0; }
+        .calendar-day.reserved-start { border-radius: 4px 0 0 4px !important; }
+        .calendar-day.reserved-end { border-radius: 0 4px 4px 0 !important; }
+        .calendar-day.selected-start { background: #2c3e50; color: white; border-radius: 4px 0 0 4px; }
+        .calendar-day.selected-end { background: #2c3e50; color: white; border-radius: 0 4px 4px 0; }
+        .calendar-day.selected-range { background: #7f8c8d; color: white; border-radius: 0; }
+        .calendar-day.today { font-weight: bold; border: 2px solid #2c3e50; }
+        .calendar-day.empty { cursor: default; }
+        .legend { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 8px; font-size: 11px; }
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+        #conflictAlert { display: none; }
+
+        /* Pulse animation pour localisation */
+        @keyframes pulse-ring { 0% { transform: scale(.8); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+        .pulse-icon { position: relative; }
+    </style>
+<link rel="stylesheet" href="{% static 'css/animations.css' %}">
+</head>
+<body>
+<nav class="navbar navbar-dark bg-custom">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#"><i class="fas fa-graduation-cap"></i> UFR Sciences</a>
+        <div class="d-flex">
+            <span class="text-white me-3"><i class="fas fa-user"></i> {{ user.username }}</span>
+            <a href="{% url 'catalogue' %}" class="btn btn-outline-light btn-sm me-2"><i class="fas fa-box"></i> Catalogue</a>
+            <a href="{% url 'espace_etudiant' %}" class="btn btn-outline-light btn-sm"><i class="fas fa-arrow-left"></i> Mon espace</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4 pb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-9">
+            <div class="card shadow border-0" style="border-radius:16px;overflow:hidden">
+                <div class="card-header bg-custom text-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar-plus"></i> Nouvelle demande d'emprunt</h5>
+                </div>
+                <div class="card-body p-4">
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" id="demandeForm">
+                        {% csrf_token %}
+
+                        <!-- Matériel -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold"><i class="fas fa-microchip me-1"></i> Matériel *</label>
+                            <select name="materiel" id="materielSelect" class="form-select" required >
+                                <option value="">Sélectionner un matériel</option>
+                                {% for materiel in materiels %}
+                                    <option value="{{ materiel.id }}"
+                                        data-quantite="{{ materiel.quantite_totale }}"
+                                        {% if materiel_preselectionne and materiel.id == materiel_preselectionne.id %}selected{% endif %}>
+                                        {{ materiel.nom }} — {{ materiel.categorie.libelle|default:"Non catégorisé" }}
+                                        ({{ materiel.quantite_disponible }}/{{ materiel.quantite_totale }} disponible)
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+
+
+                        <!-- Disponibilité -->
+                        <div id="disponibiliteSection" style="display:none;" class="mb-3">
+                            <div class="card border-info">
+                                <div class="card-body py-2">
+                                    <small class="text-muted"><i class="fas fa-info-circle"></i> Disponibilité :</small>
+                                    <div class="progress mt-1" style="height: 8px;">
+                                        <div id="disponibiliteBar" class="progress-bar bg-success" style="width:100%"></div>
+                                    </div>
+                                    <small id="disponibiliteText" class="text-muted"></small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dates -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold"><i class="fas fa-calendar-alt me-1"></i> Date de debut *</label>
+                                <input type="date" name="date_debut" id="date_debut" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold"><i class="fas fa-clock me-1"></i> Heure de debut *</label>
+                                <input type="time" name="heure_debut" id="heure_debut" class="form-control" required value="08:00">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold"><i class="fas fa-calendar-alt me-1"></i> Date de fin *</label>
+                                <input type="date" name="date_fin" id="date_fin" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold"><i class="fas fa-clock me-1"></i> Heure de fin *</label>
+                                <input type="time" name="heure_fin" id="heure_fin" class="form-control" required value="17:00">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold"><i class="fas fa-cubes me-1"></i> Quantite *</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm px-3" onclick="changeQte(-1)"><i class="fas fa-minus"></i></button>
+                                <input type="number" name="quantite" id="quantiteInput" class="form-control text-center fw-bold" value="1" min="1" max="10" readonly style="width:80px;font-size:1.2rem">
+                                <button type="button" class="btn btn-outline-secondary btn-sm px-3" onclick="changeQte(1)"><i class="fas fa-plus"></i></button>
+                                <small class="text-muted ms-2" id="qteDispoInfo"></small>
+                            </div>
+                        </div>
+
+                        <!-- Emplacement + Carte -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold"><i class="fas fa-map-marker-alt me-1"></i> Lieu d'utilisation *</label>
+                            <input type="text" name="adresse" id="adresseInput" class="form-control"
+                                   placeholder="Ex: Site cadastral Thiès Nord, ou cliquez sur la carte"
+                                   required oninput="onAdresseInput(this.value)">
+
+                            <!-- Résultat géocodage -->
+                            <div class="address-result" id="addressResult">
+                                <i class="fas fa-map-pin me-1"></i>
+                                <span id="addressResultText"></span>
+                            </div>
+
+                            <!-- Carte avancée -->
+                            <div id="map-wrapper">
+                                <!-- Barre d'outils fonds de carte -->
+                                <div class="map-toolbar">
+                                    <button type="button" class="map-tool-btn active" id="btn-osm" onclick="setBasemap('osm')">
+                                        <i class="fas fa-map"></i> Plan
+                                    </button>
+                                    <button type="button" class="map-tool-btn" id="btn-satellite" onclick="setBasemap('satellite')">
+                                        <i class="fas fa-satellite"></i> Satellite
+                                    </button>
+                                    <button type="button" class="map-tool-btn" id="btn-topo" onclick="setBasemap('topo')">
+                                        <i class="fas fa-mountain"></i> Topo
+                                    </button>
+                                </div>
+
+                                <div id="map"></div>
+
+                                <!-- Badge coordonnées -->
+                                <div class="map-coords-badge" id="coordsBadge">— cliquez pour placer un point —</div>
+
+                                <!-- Bouton ma position -->
+                                <button type="button" class="map-locate-btn" onclick="locateMe()" title="Ma position">
+                                    <i class="fas fa-location-crosshairs"></i>
+                                </button>
+                            </div>
+
+                            <!-- Coordonnées -->
+                            <div class="coord-inputs">
+                                <input type="text" name="latitude" id="latitude" class="form-control" placeholder="Latitude" readonly>
+                                <input type="text" name="longitude" id="longitude" class="form-control" placeholder="Longitude" readonly>
+                            </div>
+                            <small class="text-muted mt-1 d-block">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Cliquez sur la carte pour placer le marqueur — ou utilisez <strong>Ma position</strong>
+                            </small>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-3">
+                            <a href="{% url 'espace_etudiant' %}" class="btn btn-outline-secondary w-50 py-2" style="border-radius:10px">
+                                <i class="fas fa-times me-2"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-custom w-50 py-2" id="submitBtn" style="border-radius:10px">
+                                <i class="fas fa-paper-plane me-2"></i> Envoyer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CARTE LEAFLET AVANCÉE
+// ═══════════════════════════════════════════════════════════
+
+const DEFAULT_CENTER = [14.791, -16.935];
+
+const basemaps = {
+    osm: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap © CartoDB', maxZoom: 19
+    }),
+    satellite: L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        attribution: '© Google Maps', maxZoom: 20
+    }),
+    topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenTopoMap', maxZoom: 17
+    })
+};
+
+const map = L.map('map', { zoomControl: false }).setView(DEFAULT_CENTER, 13);
+basemaps.osm.addTo(map);
+
+// Contrôle zoom en bas à gauche
+L.control.zoom({ position: 'bottomleft' }).addTo(map);
+
+// Échelle
+L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
+
+let marker = null;
+let currentBasemap = 'osm';
+let geocodeTimeout = null;
+
+// Icône personnalisée
+const customIcon = L.divIcon({
+    className: '',
+    html: `<div style="
+        width:32px;height:32px;border-radius:50% 50% 50% 0;
+        background:#2c3e50;border:3px solid white;
+        box-shadow:0 3px 10px rgba(0,0,0,.35);
+        transform:rotate(-45deg);
+        display:flex;align-items:center;justify-content:center;
+    "><i class="fas fa-map-pin" style="transform:rotate(45deg);color:white;font-size:12px;margin-top:-2px"></i></div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -36]
+});
+
+// Clic sur la carte
+map.on('click', function(e) {
+    placeMarker(e.latlng.lat, e.latlng.lng);
+    reverseGeocode(e.latlng.lat, e.latlng.lng);
+});
+
+// Affichage coordonnées en temps réel au survol
+map.on('mousemove', function(e) {
+    if (!marker) {
+        document.getElementById('coordsBadge').textContent =
+            `${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
+    }
+});
+
+function placeMarker(lat, lng) {
+    if (marker) map.removeLayer(marker);
+
+    marker = L.marker([lat, lng], { icon: customIcon, draggable: true })
+        .addTo(map)
+        .bindPopup(`<b>Point sélectionné</b><br><small>${lat.toFixed(5)}, ${lng.toFixed(5)}</small>`)
+        .openPopup();
+
+    // Déplaçable à la souris
+    marker.on('dragend', function(ev) {
+        const pos = ev.target.getLatLng();
+        updateCoords(pos.lat, pos.lng);
+        reverseGeocode(pos.lat, pos.lng);
+    });
+
+    updateCoords(lat, lng);
+}
+
+function updateCoords(lat, lng) {
+    document.getElementById('latitude').value  = lat.toFixed(6);
+    document.getElementById('longitude').value = lng.toFixed(6);
+    document.getElementById('coordsBadge').textContent =
+        `📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+}
+
+// ── Changement de fond de carte ────────────────────────────
+function setBasemap(name) {
+    map.removeLayer(basemaps[currentBasemap]);
+    basemaps[name].addTo(map);
+    currentBasemap = name;
+    document.querySelectorAll('.map-tool-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + name).classList.add('active');
+}
+
+// ── Géolocalisation ────────────────────────────────────────
+function locateMe() {
+    if (!navigator.geolocation) {
+        alert('Géolocalisation non supportée par votre navigateur.');
+        return;
+    }
+    const btn = document.querySelector('.map-locate-btn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            map.flyTo([lat, lng], 16, { animate: true, duration: 1.5 });
+            placeMarker(lat, lng);
+            reverseGeocode(lat, lng);
+            btn.innerHTML = '<i class="fas fa-location-crosshairs"></i>';
+        },
+        err => {
+            alert('Impossible d\'obtenir votre position. Vérifiez les permissions.');
+            btn.innerHTML = '<i class="fas fa-location-crosshairs"></i>';
+        },
+        { timeout: 8000 }
+    );
+}
+
+// ── Géocodage inverse (Nominatim) ──────────────────────────
+function reverseGeocode(lat, lng) {
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=fr`)
+        .then(r => r.json())
+        .then(data => {
+            if (data && data.display_name) {
+                const short = data.display_name.split(',').slice(0, 3).join(', ');
+                document.getElementById('addressResultText').textContent = short;
+                document.getElementById('addressResult').classList.add('visible');
+                // Pré-remplir le champ adresse si vide
+                const adresseInput = document.getElementById('adresseInput');
+                if (!adresseInput.value) adresseInput.value = short;
+                // Mettre à jour le popup
+                if (marker) marker.setPopupContent(`<b>${short}</b><br><small>${lat.toFixed(5)}, ${lng.toFixed(5)}</small>`).openPopup();
+            }
+        })
+        .catch(() => {});
+}
+
+// ── Géocodage direct depuis le champ adresse ───────────────
+function onAdresseInput(val) {
+    clearTimeout(geocodeTimeout);
+    if (val.length < 5) return;
+    geocodeTimeout = setTimeout(() => forwardGeocode(val), 800);
+}
+
+function forwardGeocode(query) {
+    fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ' Sénégal')}&format=json&limit=1&accept-language=fr`)
+        .then(r => r.json())
+        .then(results => {
+            if (results && results.length > 0) {
+                const r = results[0];
+                const lat = parseFloat(r.lat);
+                const lng = parseFloat(r.lon);
+                map.flyTo([lat, lng], 15, { animate: true, duration: 1 });
+                placeMarker(lat, lng);
+                document.getElementById('addressResultText').textContent = r.display_name.split(',').slice(0,3).join(', ');
+                document.getElementById('addressResult').classList.add('visible');
+            }
+        })
+        .catch(() => {});
+}
+
+// ═══════════════════════════════════════════════════════════
+// CALENDRIER (inchangé)
+// ═══════════════════════════════════════════════════════════
+
+let currentYear  = new Date().getFullYear();
+let currentMonth = new Date().getMonth();
+const today = new Date(); today.setHours(0,0,0,0);
+const dayNames = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+
+function renderCalendar() {
+    const grid  = document.getElementById('calendarGrid');
+    const title = document.getElementById('calendarTitle');
+    grid.innerHTML = '';
+    const months = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    title.textContent = `${months[currentMonth]} ${currentYear}`;
+
+    dayNames.forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'calendar-day-name';
+        el.textContent = d;
+        grid.appendChild(el);
+    });
+
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    let startDow = firstDay.getDay();
+    startDow = startDow === 0 ? 6 : startDow - 1;
+    for (let i = 0; i < startDow; i++) {
+        const e = document.createElement('div');
+        e.className = 'calendar-day empty';
+        grid.appendChild(e);
+    }
+
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(currentYear, currentMonth, d);
+        date.setHours(0,0,0,0);
+        const el = document.createElement('div');
+        el.className = 'calendar-day';
+        el.textContent = d;
+
+        if (date.getTime() === today.getTime()) el.classList.add('today');
+        if (date < today)       { el.classList.add('past'); }
+        else if (isReserved(date)) { el.classList.add('reserved'); el.title = 'Déjà réservé'; }
+        else { el.onclick = () => selectDate(date); }
+
+        if (selectedStart && selectedEnd) {
+            if (date.getTime() === selectedStart.getTime()) el.classList.add('selected-start');
+            else if (date.getTime() === selectedEnd.getTime()) el.classList.add('selected-end');
+            else if (date > selectedStart && date < selectedEnd) el.classList.add('selected-range');
+        } else if (selectedStart && date.getTime() === selectedStart.getTime()) {
+            el.classList.add('selected-start');
+        }
+
+        grid.appendChild(el);
+    }
+}
+
+function selectDate(date) {
+    if (selectingStart) {
+        selectedStart = date; selectedEnd = null; selectingStart = false;
+        document.getElementById('date_debut').value = date.toISOString().split('T')[0];
+        document.getElementById('date_fin').value = '';
+    } else {
+        if (date <= selectedStart) {
+            selectedStart = date; selectedEnd = null;
+            document.getElementById('date_debut').value = date.toISOString().split('T')[0];
+            document.getElementById('date_fin').value = '';
+        } else {
+            let conflict = false;
+            for (let d = new Date(selectedStart); d <= date; d.setDate(d.getDate() + 1)) {
+                if (isReserved(new Date(d))) { conflict = true; break; }
+            }
+            if (conflict) {
+                showConflict('La plage sélectionnée contient des jours déjà réservés.');
+                selectingStart = true; selectedStart = null; selectedEnd = null;
+                document.getElementById('date_debut').value = '';
+                document.getElementById('date_fin').value = '';
+            } else {
+                selectedEnd = date; selectingStart = true;
+                document.getElementById('date_fin').value = date.toISOString().split('T')[0];
+                hideConflict();
+            }
+        }
+    }
+    renderCalendar();
+    checkConflict();
+}
+
+function prevMonth() {
+    currentMonth--;
+    if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+    renderCalendar();
+}
+function nextMonth() {
+    currentMonth++;
+    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+    renderCalendar();
+}
+
+function changeQte(delta) {
+    const input = document.getElementById('quantiteInput');
+    const opt = document.getElementById('materielSelect').options[document.getElementById('materielSelect').selectedIndex];
+    const maxDispo = parseInt(opt.getAttribute('data-quantite')) || 10;
+    let val = Math.max(1, Math.min(parseInt(input.value) + delta, maxDispo));
+    input.value = val;
+}
+document.getElementById('materielSelect').addEventListener('change', function() {
+    const dispo = this.options[this.selectedIndex].getAttribute('data-quantite');
+    document.getElementById('quantiteInput').value = 1;
+    document.getElementById('quantiteInput').max = dispo || 10;
+    document.getElementById('qteDispoInfo').textContent = dispo ? 'Max : ' + dispo : '';
+});
+window.onload = function() {
+    const sel = document.getElementById('materielSelect');
+    if (sel.value) loadReservations(sel.value);
+    const todayStr = new Date().toISOString().split('T')[0];
+    document.getElementById('date_debut').min = todayStr;
+    document.getElementById('date_fin').min   = todayStr;
+};
+
+    // VALIDATION AVANT SOUMISSION - FORCER LA SÉLECTION D'UN LIEU
+    document.getElementById('demandeForm').addEventListener('submit', function(e) {
+        const lat = document.getElementById('latitude').value;
+        const lng = document.getElementById('longitude').value;
+        const adresse = document.getElementById('adresseInput').value;
+        
+        if (!lat || !lng || lat === '' || lng === '') {
+            e.preventDefault();
+            alert('❌ Veuillez sélectionner un lieu sur la carte en cliquant sur la carte ou en utilisant "Ma position"');
+            return false;
+        }
+        
+        if (!adresse || adresse.trim() === '') {
+            e.preventDefault();
+            alert('❌ Veuillez saisir ou valider l\'adresse du lieu d\'utilisation');
+            return false;
+        }
+        
+        console.log('✅ Demande soumise avec lieu:', {lat, lng, adresse});
+    });
+
+    // VALIDATION OBLIGATOIRE DU LIEU AVANT SOUMISSION
+    const form = document.getElementById('demandeForm');
+    const originalSubmit = form.onsubmit;
+    
+    form.onsubmit = function(e) {
+        const lat = document.getElementById('latitude').value;
+        const lng = document.getElementById('longitude').value;
+        const adresse = document.getElementById('adresseInput').value;
+        
+        // Vérifier si l'utilisateur a cliqué sur la carte
+        if (!lat || !lng || lat === '' || lng === '' || lat === '0' || lng === '0') {
+            e.preventDefault();
+            alert('❌ Veuillez cliquer sur la carte pour sélectionner votre lieu d\'utilisation !\n\n1. Cliquez sur la carte ci-dessus\n2. Ou utilisez le bouton "Ma position"\n3. Puis soumettez votre demande');
+            return false;
+        }
+        
+        // Vérifier si l'adresse est remplie
+        if (!adresse || adresse.trim() === '') {
+            e.preventDefault();
+            alert('❌ Veuillez saisir l\'adresse du lieu d\'utilisation');
+            return false;
+        }
+        
+        console.log('✅ Lieu sélectionné:', {lat, lng, adresse});
+        return true;
+    };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+    // VALIDATION AVANT SOUMISSION - FORCER LA SÉLECTION D'UN LIEU
+    document.getElementById('demandeForm').addEventListener('submit', function(e) {
+        const lat = document.getElementById('latitude').value;
+        const lng = document.getElementById('longitude').value;
+        const adresse = document.getElementById('adresseInput').value;
+        
+        if (!lat || !lng || lat === '' || lng === '') {
+            e.preventDefault();
+            alert('❌ Veuillez sélectionner un lieu sur la carte en cliquant sur la carte ou en utilisant "Ma position"');
+            return false;
+        }
+        
+        if (!adresse || adresse.trim() === '') {
+            e.preventDefault();
+            alert('❌ Veuillez saisir ou valider l\'adresse du lieu d\'utilisation');
+            return false;
+        }
+        
+        console.log('✅ Demande soumise avec lieu:', {lat, lng, adresse});
+    });
+
+    // VALIDATION OBLIGATOIRE DU LIEU AVANT SOUMISSION
+    const form = document.getElementById('demandeForm');
+    const originalSubmit = form.onsubmit;
+    
+    form.onsubmit = function(e) {
+        const lat = document.getElementById('latitude').value;
+        const lng = document.getElementById('longitude').value;
+        const adresse = document.getElementById('adresseInput').value;
+        
+        // Vérifier si l'utilisateur a cliqué sur la carte
+        if (!lat || !lng || lat === '' || lng === '' || lat === '0' || lng === '0') {
+            e.preventDefault();
+            alert('❌ Veuillez cliquer sur la carte pour sélectionner votre lieu d\'utilisation !\n\n1. Cliquez sur la carte ci-dessus\n2. Ou utilisez le bouton "Ma position"\n3. Puis soumettez votre demande');
+            return false;
+        }
+        
+        // Vérifier si l'adresse est remplie
+        if (!adresse || adresse.trim() === '') {
+            e.preventDefault();
+            alert('❌ Veuillez saisir l\'adresse du lieu d\'utilisation');
+            return false;
+        }
+        
+        console.log('✅ Lieu sélectionné:', {lat, lng, adresse});
+        return true;
+    };
+</script>
+<script src="{% static 'js/animations.js' %}"></script>
+</body>
+</html>
+

@@ -355,7 +355,7 @@
                     <tbody>
                         {% for d in demandes_recentes %}
                         <tr style="border-bottom:1px solid #f5f5f5">
-                            <td style="padding:10px 16px;font-size:0.82rem;font-weight:700;color:var(--primary)">{{ d.id }}</td>
+                            <td style="padding:10px 16px;font-size:0.82rem;font-weight:700;color:var(--primary)">##{{ d.id }}</td>
                             <td style="padding:10px 16px;font-size:0.82rem">{{ d.utilisateur.username }}</td>
                             <td style="padding:10px 16px">
                                 <span class="status-badge {% if d.statut == 'en_attente' %}bg-warning text-dark{% elif d.statut == 'approuvee' %}bg-success text-white{% elif d.statut == 'refusee' %}bg-danger text-white{% elif d.statut == 'en_cours' %}bg-info text-white{% else %}bg-secondary text-white{% endif %}">

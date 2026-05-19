@@ -271,7 +271,7 @@ def export_rapport_pdf(request):
             p.rect(40, y - 4, width - 80, 14, fill=1, stroke=0)
         p.setFillColorRGB(0, 0, 0)
         mat = ", ".join([l.materiel.nom[:15] for l in d.lignes.all()])
-        p.drawString(45, y, f"#{d.id}")
+        p.drawString(45, y, f"{d.id}")
         p.drawString(75, y, d.utilisateur.username[:18])
         p.drawString(200, y, mat[:20])
         p.drawString(340, y, f"{d.date_debut.strftime('%d/%m')} - {d.date_fin.strftime('%d/%m/%Y')}")

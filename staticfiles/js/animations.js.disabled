@@ -93,19 +93,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 
-
-// -- Transition entre pages (sauf modals et boutons)
+// -- Transition entre pages -------------
 document.querySelectorAll('a:not([target="_blank"]):not([href^="#"]):not([href^="mailto"])').forEach(link => {
   link.addEventListener('click', function (e) {
-    // Ignorer les modals Bootstrap
-    if (this.hasAttribute('data-bs-toggle') || this.closest('[data-bs-toggle="modal"]')) {
-      return;
-    }
     const href = this.getAttribute('href');
-    if (href && !href.startsWith('javascript')) {
+    if (href && !href.startsWith('javascript') && !this.hasAttribute('data-bs-toggle')) {
       e.preventDefault();
       document.body.style.opacity = '0';
       setTimeout(() => window.location.href = href, 300);
     }
   });
 });
+
