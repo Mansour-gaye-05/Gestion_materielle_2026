@@ -7,223 +7,474 @@
     <title>Assistant IA - UFR Sciences</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        body { background: #f0f2f5; }
-        .bg-custom { background-color: #2c3e50 !important; }
-        .chat-container { height: 480px; overflow-y: auto; background: #f8f9fa; border-radius: 12px; padding: 15px; scroll-behavior: smooth; }
-        .message-user { background: #2c3e50; color: white; padding: 10px 15px; border-radius: 18px 18px 4px 18px; margin: 8px 0; max-width: 75%; float: right; clear: both; font-size: 0.9rem; }
-        .message-bot-wrapper { float: left; clear: both; max-width: 80%; margin: 8px 0; }
-        .message-bot { background: white; color: #333; padding: 12px 15px; border-radius: 18px 18px 18px 4px; font-size: 0.9rem; box-shadow: 0 1px 4px rgba(0,0,0,0.08); white-space: pre-line; }
-        .message-bot.mode-diagnostic { border-left: 4px solid #e74c3c; }
-        .message-bot.mode-suggestion { border-left: 4px solid #27ae60; }
-        .message-bot.mode-procedure { border-left: 4px solid #3498db; }
-        .mode-badge { font-size: 0.65rem; padding: 2px 7px; border-radius: 10px; margin-bottom: 4px; display: inline-block; }
-        .mode-diagnostic .mode-badge { background: #fde8e8; color: #e74c3c; }
-        .mode-suggestion .mode-badge { background: #e8f8e8; color: #27ae60; }
-        .mode-procedure .mode-badge { background: #e8f0fe; color: #3498db; }
-        .mode-general .mode-badge { background: #f0f0f0; color: #666; }
+        :root { --primary: #2c3e50; --accent: #3498db; --success: #27ae60; --warning: #f39c12; --danger: #e74c3c; --sidebar-width: 280px; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f0f2f5; margin: 0; }
 
-        /* Bouton copier */
-        .copy-bar { display: flex; justify-content: flex-end; margin-top: 4px; }
-        .btn-copy { background: none; border: 1px solid #dee2e6; border-radius: 20px; padding: 2px 10px; font-size: 0.72rem; color: #999; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; }
-        .btn-copy:hover { background: #2c3e50; color: white; border-color: #2c3e50; }
-        .btn-copy.copied { background: #27ae60; color: white; border-color: #27ae60; }
+        /* LAYOUT PRINCIPAL */
+        .app-layout { display: flex; min-height: calc(100vh - 56px); }
 
-        .typing { color: #999; font-style: italic; font-size: 0.85rem; clear: both; padding: 5px 10px; }
-        .suggestion-chip { display: inline-block; margin: 3px; padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; cursor: pointer; border: 1px solid #dee2e6; background: white; transition: all 0.2s; }
-        .suggestion-chip:hover { background: #2c3e50; color: white; border-color: #2c3e50; }
-        .suggestion-chip.chip-diagnostic { border-color: #e74c3c; color: #e74c3c; }
-        .suggestion-chip.chip-diagnostic:hover { background: #e74c3c; color: white; }
-        .suggestion-chip.chip-suggestion { border-color: #27ae60; color: #27ae60; }
-        .suggestion-chip.chip-suggestion:hover { background: #27ae60; color: white; }
-        .suggestion-chip.chip-procedure { border-color: #3498db; color: #3498db; }
-        .suggestion-chip.chip-procedure:hover { background: #3498db; color: white; }
-        .chat-input { border-radius: 25px; border: 2px solid #dee2e6; padding: 10px 20px; font-size: 0.9rem; }
-        .chat-input:focus { border-color: #2c3e50; box-shadow: none; }
-        .btn-send { border-radius: 25px; padding: 10px 22px; background: #2c3e50; border: none; color: white; }
-        .btn-send:hover { background: #1a252f; }
-        .mode-active { background: #2c3e50 !important; color: white !important; }
+        /* SIDEBAR HISTORIQUE - GAUCHE */
+        .history-sidebar {
+            width: var(--sidebar-width);
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+        }
+        .history-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            background: var(--primary);
+            color: white;
+        }
+        .history-header h5 { margin: 0; font-family: 'Manrope', sans-serif; font-weight: 700; }
+        .history-header p { margin: 5px 0 0; font-size: 0.7rem; opacity: 0.7; }
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .history-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .history-item:hover {
+            background: #e9ecef;
+            transform: translateX(3px);
+        }
+        .history-item.active {
+            background: #e3f2fd;
+            border-left-color: var(--primary);
+        }
+        .history-question {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+        .history-question i { font-size: 0.7rem; opacity: 0.6; }
+        .history-preview {
+            font-size: 0.7rem;
+            color: #6c757d;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .history-date {
+            font-size: 0.65rem;
+            color: #adb5bd;
+            margin-top: 6px;
+        }
+        .history-actions {
+            padding: 15px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            gap: 8px;
+        }
+        .btn-clear-history {
+            background: none;
+            border: 1px solid #dee2e6;
+            border-radius: 20px;
+            padding: 8px;
+            font-size: 0.7rem;
+            color: #e74c3c;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .btn-clear-history:hover {
+            background: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+        }
+        .btn-refresh-history {
+            background: none;
+            border: 1px solid #dee2e6;
+            border-radius: 20px;
+            padding: 8px;
+            font-size: 0.7rem;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .btn-refresh-history:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
 
-        /* Bouton micro */
-        .btn-mic { border-radius: 50%; width: 46px; height: 46px; border: none; background: #f0f2f5; color: #2c3e50; font-size: 1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
-        .btn-mic:hover { background: #dee2e6; }
-        .btn-mic.recording { background: #e74c3c; color: white; animation: pulse-mic 1s infinite; }
-        @keyframes pulse-mic { 0%,100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.4); } 50% { box-shadow: 0 0 0 8px rgba(231,76,60,0); } }
-        .mic-status { font-size: 0.75rem; color: #e74c3c; text-align: center; margin-top: 4px; display: none; }
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            min-width: 0;
+        }
+
+        /* TOPBAR */
+        .topbar { background: var(--primary); position: sticky; top: 0; z-index: 1000; height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .topbar-brand { font-family: 'Manrope', sans-serif; font-weight: 800; color: white; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+        .btn-icon { width: 34px; height: 34px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: all 0.2s; }
+        .btn-icon:hover { background: rgba(255,255,255,0.2); color: white; }
+        .toggle-sidebar { background: rgba(255,255,255,0.15); border: none; color: white; border-radius: 8px; padding: 6px 12px; margin-right: 10px; display: none; }
+        @media (max-width: 768px) {
+            .toggle-sidebar { display: block; }
+            .history-sidebar { position: fixed; left: 0; top: 56px; bottom: 0; z-index: 1050; transform: translateX(-100%); }
+            .history-sidebar.open { transform: translateX(0); }
+        }
+
+        /* CHAT CONTAINER */
+        .chat-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .chat-header { background: linear-gradient(135deg, var(--primary), #1a2a3a); padding: 16px 20px; color: white; }
+        .chat-container { height: 420px; overflow-y: auto; padding: 20px; background: #f8f9fa; scroll-behavior: smooth; }
+
+        /* MESSAGES */
+        .message-user { background: var(--primary); color: white; padding: 10px 16px; border-radius: 18px 18px 4px 18px; margin: 8px 0; max-width: 75%; float: right; clear: both; font-size: 0.88rem; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .message-bot-wrapper { float: left; clear: both; max-width: 85%; margin: 8px 0; }
+        .message-bot { background: white; color: #333; padding: 12px 16px; border-radius: 18px 18px 18px 4px; font-size: 0.88rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); line-height: 1.5; }
+        .message-bot.mode-diagnostic { border-left: 4px solid var(--danger); }
+        .message-bot.mode-suggestion { border-left: 4px solid var(--success); }
+        .message-bot.mode-procedure { border-left: 4px solid var(--accent); }
+        .mode-badge { font-size: 0.65rem; padding: 2px 8px; border-radius: 12px; margin-bottom: 6px; display: inline-block; font-weight: 600; }
+        .mode-diagnostic .mode-badge { background: #fde8e8; color: var(--danger); }
+        .mode-suggestion .mode-badge { background: #e8f8e8; color: var(--success); }
+        .mode-procedure .mode-badge { background: #e8f0fe; color: var(--accent); }
+        .mode-general .mode-badge { background: #e9ecef; color: #6c757d; }
+
+        /* COPY BUTTON */
+        .copy-bar { display: flex; justify-content: flex-end; margin-top: 6px; opacity: 0.6; transition: opacity 0.2s; }
+        .message-bot-wrapper:hover .copy-bar { opacity: 1; }
+        .btn-copy { background: none; border: 1px solid #dee2e6; border-radius: 20px; padding: 2px 10px; font-size: 0.7rem; color: #999; cursor: pointer; transition: all 0.2s; }
+        .btn-copy:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn-copy.copied { background: var(--success); color: white; border-color: var(--success); }
+
+        /* TYPING INDICATOR */
+        .typing { color: #999; font-style: italic; font-size: 0.85rem; clear: both; padding: 8px 12px; display: flex; align-items: center; gap: 8px; }
+        .typing-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #999; animation: typingPulse 1.4s infinite; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingPulse { 0%,60%,100% { opacity: 0.3; transform: scale(0.8); } 30% { opacity: 1; transform: scale(1.2); } }
+
+        /* SUGGESTION CHIPS */
+        .suggestions-container { padding: 12px 16px; background: white; border-top: 1px solid #f0f0f0; }
+        .suggestion-chip { display: inline-block; margin: 3px; padding: 6px 14px; border-radius: 25px; font-size: 0.75rem; cursor: pointer; background: white; border: 1px solid #dee2e6; transition: all 0.2s; }
+        .suggestion-chip:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .suggestion-chip.chip-diagnostic { border-color: var(--danger); color: var(--danger); }
+        .suggestion-chip.chip-diagnostic:hover { background: var(--danger); color: white; }
+        .suggestion-chip.chip-suggestion { border-color: var(--success); color: var(--success); }
+        .suggestion-chip.chip-suggestion:hover { background: var(--success); color: white; }
+        .suggestion-chip.chip-procedure { border-color: var(--accent); color: var(--accent); }
+        .suggestion-chip.chip-procedure:hover { background: var(--accent); color: white; }
+
+        /* MODE BUTTONS */
+        .mode-btn { border-radius: 25px; padding: 6px 16px; font-size: 0.75rem; font-weight: 500; transition: all 0.2s; margin: 2px; background: white; border: 1px solid #dee2e6; }
+        .mode-btn.mode-active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* INPUT */
+        .chat-input { border-radius: 30px; border: 2px solid #e0e0e0; padding: 12px 20px; font-size: 0.88rem; transition: all 0.2s; }
+        .chat-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(44,62,80,0.1); }
+        .btn-send { border-radius: 30px; padding: 12px 28px; background: var(--primary); border: none; color: white; font-weight: 600; transition: all 0.2s; }
+        .btn-send:hover { background: #1a252f; transform: translateY(-1px); }
+        .btn-mic { border-radius: 50%; width: 48px; height: 48px; border: 2px solid #e0e0e0; background: white; color: var(--primary); transition: all 0.2s; }
+        .btn-mic:hover { background: #f0f2f5; border-color: var(--primary); }
+        .btn-mic.recording { background: var(--danger); color: white; border-color: var(--danger); animation: pulseMic 1s infinite; }
+        @keyframes pulseMic { 0%,100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.4); } 50% { box-shadow: 0 0 0 8px rgba(231,76,60,0); } }
+        .mic-status { font-size: 0.7rem; color: var(--danger); text-align: center; margin-top: 6px; display: none; }
         .mic-status.visible { display: block; }
+
+        /* ANIMATIONS */
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .message-bot-wrapper, .message-user { animation: fadeInUp 0.3s ease forwards; }
+
+        /* SCROLLBAR */
+        .history-list::-webkit-scrollbar, .chat-container::-webkit-scrollbar { width: 6px; }
+        .history-list::-webkit-scrollbar-track, .chat-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .history-list::-webkit-scrollbar-thumb, .chat-container::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 10px; }
+        .history-list::-webkit-scrollbar-thumb:hover, .chat-container::-webkit-scrollbar-thumb:hover { background: #a1a1a1; }
     </style>
-<link rel="stylesheet" href="{% static 'css/animations.css' %}">
 </head>
 <body>
-<nav class="navbar navbar-dark bg-custom">
-    <div class="container-fluid">
-        <span class="navbar-brand"><i class="fas fa-robot"></i> Assistant IA — Materiel Topographique UFR</span>
-        <div class="d-flex align-items-center gap-2">
-            <span class="text-white small"><i class="fas fa-user"></i> {{ user.username }}</span>
-            <a href="{% url 'catalogue' %}" class="btn btn-outline-light btn-sm">Catalogue</a>
-            <a href="{% if user.role == 'enseignant' %}{% url 'espace_enseignant' %}{% elif user.role == 'technicien' %}{% url 'espace_technicien' %}{% else %}{% url 'espace_etudiant' %}{% endif %}"  class="btn btn-outline-light btn-sm">Mon espace</a>
+
+<!-- TOPBAR -->
+<div class="topbar">
+    <div class="d-flex align-items-center">
+        <button class="toggle-sidebar" id="toggleSidebarBtn" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="topbar-brand"><i class="fas fa-robot me-2"></i> Assistant IA — Matériel Topographique</div>
+    </div>
+    <div class="d-flex gap-2">
+        <span style="color:white;font-size:0.8rem"><i class="fas fa-user me-1"></i>{{ user.username }}</span>
+        <a href="{% url 'catalogue' %}" class="btn-icon" title="Catalogue"><i class="fas fa-box"></i></a>
+        <a href="{% if user.role == 'enseignant' %}{% url 'espace_enseignant' %}{% elif user.role == 'technicien' %}{% url 'espace_technicien' %}{% else %}{% url 'espace_etudiant' %}{% endif %}" class="btn-icon" title="Mon espace"><i class="fas fa-home"></i></a>
+        <a href="{% url 'deconnexion' %}" class="btn-icon" style="border-color:rgba(231,76,60,0.3)" title="Déconnexion"><i class="fas fa-sign-out-alt"></i></a>
+    </div>
+</div>
+
+<div class="app-layout">
+    <!-- SIDEBAR HISTORIQUE À GAUCHE -->
+    <div class="history-sidebar" id="historySidebar">
+        <div class="history-header">
+            <h5><i class="fas fa-history me-2"></i>Historique</h5>
+            <p>Conversations précédentes</p>
+        </div>
+        <div class="history-list" id="historyList">
+            <div class="text-center text-muted py-4">Chargement...</div>
+        </div>
+        <div class="history-actions">
+            <button class="btn-refresh-history" onclick="loadHistory()">
+                <i class="fas fa-sync-alt"></i> Actualiser
+            </button>
+            <button class="btn-clear-history" onclick="clearHistory()">
+                <i class="fas fa-trash-alt"></i> Tout effacer
+            </button>
         </div>
     </div>
-</nav>
 
-<div class="container mt-3">
-    <div class="row justify-content-center">
-        <div class="col-md-9">
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="row justify-content-center">
+            <div class="col-lg-9 col-md-11">
 
-            <!-- Modes -->
-            <div class="card mb-3 border-0 shadow-sm">
-                <div class="card-body py-2">
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <small class="text-muted fw-bold">MODE :</small>
-                        <button class="btn btn-sm btn-outline-secondary mode-btn mode-active" data-mode="general" onclick="setMode('general', this)">
-                            <i class="fas fa-comment"></i> General
+                <!-- Modes -->
+                <div class="text-center mb-3">
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <button class="mode-btn mode-active" data-mode="general" onclick="setMode('general', this)">
+                            <i class="fas fa-comment"></i> Général
                         </button>
-                        <button class="btn btn-sm btn-outline-danger mode-btn" data-mode="diagnostic" onclick="setMode('diagnostic', this)">
+                        <button class="mode-btn" data-mode="diagnostic" onclick="setMode('diagnostic', this)">
                             <i class="fas fa-stethoscope"></i> Diagnostic panne
                         </button>
-                        <button class="btn btn-sm btn-outline-success mode-btn" data-mode="suggestion" onclick="setMode('suggestion', this)">
-                            <i class="fas fa-lightbulb"></i> Recommandation materiel
+                        <button class="mode-btn" data-mode="suggestion" onclick="setMode('suggestion', this)">
+                            <i class="fas fa-lightbulb"></i> Recommandation
                         </button>
-                        <button class="btn btn-sm btn-outline-primary mode-btn" data-mode="procedure" onclick="setMode('procedure', this)">
-                            <i class="fas fa-list-ol"></i> Procedure emprunt
+                        <button class="mode-btn" data-mode="procedure" onclick="setMode('procedure', this)">
+                            <i class="fas fa-list-ol"></i> Procédure
                         </button>
                     </div>
                 </div>
-            </div>
 
-            <!-- Chat -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-3">
+                <!-- Chat Card -->
+                <div class="chat-card">
+                    <div class="chat-header">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-robot fa-lg"></i>
+                            <strong>Assistant IA</strong>
+                            <span class="small ms-auto opacity-75"><i class="fas fa-microchip"></i> Groq Llama 3.3</span>
+                        </div>
+                    </div>
+
                     <div class="chat-container" id="chatContainer">
                         <div class="message-bot-wrapper">
                             <div class="message-bot mode-general">
-                                <div class="mode-badge">Assistant UFR</div><br>
-                                Bonjour {{ user.username }} ! Je suis votre assistant intelligent pour le materiel topographique.<br><br>
-                                Je peux vous aider sur 4 modes :<br>
-                                🔧 <strong>Diagnostic</strong> — Decrivez votre panne, je l'analyse<br>
-                                💡 <strong>Recommandation</strong> — Decrivez votre mission, je recommande le materiel<br>
-                                📋 <strong>Procedure</strong> — Questions sur les emprunts et restitutions<br>
-                                💬 <strong>General</strong> — Toute question sur le materiel topo<br><br>
-                                Comment puis-je vous aider ?
+                                <div class="mode-badge">🤖 Assistant</div>
+                                Bonjour <strong>{{ user.username }}</strong> !<br><br>
+                                Je suis votre assistant intelligent pour le matériel topographique.<br><br>
+                                <strong>Que puis-je faire pour vous ?</strong><br><br>
+                                • 🔧 Décrivez une panne → je vous aide à diagnostiquer<br>
+                                • 💡 Décrivez votre mission → je recommande le matériel<br>
+                                • 📋 Demandez une procédure → je vous guide étape par étape
                             </div>
-                            <div class="copy-bar">
-                                <button class="btn-copy" onclick="copyMessage(this)">
-                                    <i class="fas fa-copy"></i> Copier
-                                </button>
-                            </div>
+                            <div class="copy-bar"><button class="btn-copy" onclick="copyMessage(this)">📋 Copier</button></div>
                         </div>
                     </div>
 
                     <!-- Suggestions -->
-                    <div class="mt-2 mb-2" id="suggestionsContainer">
+                    <div class="suggestions-container" id="suggestionsContainer">
                         <div id="chips-general">
                             <span class="suggestion-chip" onclick="sendSuggestion('Comment utiliser une station totale ?')">📐 Station totale</span>
                             <span class="suggestion-chip" onclick="sendSuggestion('Comment utiliser un GPS GNSS ?')">📡 GPS GNSS</span>
                             <span class="suggestion-chip" onclick="sendSuggestion('Comment faire un nivellement ?')">📏 Nivellement</span>
-                            <span class="suggestion-chip" onclick="sendSuggestion('Comment transporter le materiel ?')">🚚 Transport</span>
+                            <span class="suggestion-chip" onclick="sendSuggestion('Quels sont les délais d\'emprunt ?')">⏰ Délais</span>
                         </div>
                         <div id="chips-diagnostic" style="display:none">
-                            <span class="suggestion-chip chip-diagnostic" onclick="sendSuggestion('Le niveau ne s allume plus')">💡 Niveau eteint</span>
                             <span class="suggestion-chip chip-diagnostic" onclick="sendSuggestion('Le GPS ne capte pas de signal')">📡 GPS sans signal</span>
-                            <span class="suggestion-chip chip-diagnostic" onclick="sendSuggestion('La station totale affiche une erreur')">⚠️ Erreur station totale</span>
-                            <span class="suggestion-chip chip-diagnostic" onclick="sendSuggestion('La batterie ne charge plus')">🔋 Batterie</span>
-                            <span class="suggestion-chip chip-diagnostic" onclick="sendSuggestion('Les mesures sont incorrectes')">📊 Mesures incorrectes</span>
+                            <span class="suggestion-chip chip-diagnostic" onclick="sendSuggestion('La station totale affiche une erreur')">⚠️ Erreur station</span>
+                            <span class="suggestion-chip chip-diagnostic" onclick="sendSuggestion('Le niveau optique ne s\'allume pas')">🔭 Niveau éteint</span>
+                            <span class="suggestion-chip chip-diagnostic" onclick="sendSuggestion('Mesures incorrectes')">📊 Mesures fausses</span>
                         </div>
                         <div id="chips-suggestion" style="display:none">
-                            <span class="suggestion-chip chip-suggestion" onclick="sendSuggestion('J ai besoin de materiel pour un leve topographique')">🗺️ Leve topo</span>
-                            <span class="suggestion-chip chip-suggestion" onclick="sendSuggestion('Quel materiel pour une mission cadastrale ?')">📋 Cadastre</span>
-                            <span class="suggestion-chip chip-suggestion" onclick="sendSuggestion('Materiel pour implantation de batiment ?')">🏗️ Implantation</span>
-                            <span class="suggestion-chip chip-suggestion" onclick="sendSuggestion('Que me recommandez-vous pour du nivellement de precision ?')">📏 Nivellement precision</span>
+                            <span class="suggestion-chip chip-suggestion" onclick="sendSuggestion('Je dois faire un levé topographique')">🗺️ Levé topo</span>
+                            <span class="suggestion-chip chip-suggestion" onclick="sendSuggestion('Quel matériel pour un cadastre ?')">📋 Cadastre</span>
+                            <span class="suggestion-chip chip-suggestion" onclick="sendSuggestion('Implantation de bâtiment')">🏗️ Implantation</span>
+                            <span class="suggestion-chip chip-suggestion" onclick="sendSuggestion('Nivellement de précision')">📏 Nivellement</span>
                         </div>
                         <div id="chips-procedure" style="display:none">
-                            <span class="suggestion-chip chip-procedure" onclick="sendSuggestion('Comment emprunter un materiel ?')">📦 Emprunter</span>
-                            <span class="suggestion-chip chip-procedure" onclick="sendSuggestion('Comment rendre un materiel ?')">↩️ Rendre</span>
-                            <span class="suggestion-chip chip-procedure" onclick="sendSuggestion('Comment signaler une panne pendant un emprunt ?')">🚨 Signaler panne</span>
-                            <span class="suggestion-chip chip-procedure" onclick="sendSuggestion('Comment voir les reservations d un materiel ?')">📅 Reservations</span>
+                            <span class="suggestion-chip chip-procedure" onclick="sendSuggestion('Comment emprunter un matériel ?')">📦 Emprunter</span>
+                            <span class="suggestion-chip chip-procedure" onclick="sendSuggestion('Comment rendre un matériel ?')">↩️ Rendre</span>
+                            <span class="suggestion-chip chip-procedure" onclick="sendSuggestion('Comment signaler une panne ?')">🚨 Signaler panne</span>
+                            <span class="suggestion-chip chip-procedure" onclick="sendSuggestion('Voir les réservations')">📅 Réservations</span>
                         </div>
                     </div>
 
                     <!-- Input -->
-                    <div class="d-flex align-items-center gap-2 mt-2">
-                        <input type="text" id="messageInput" class="form-control chat-input"
-                               placeholder="Posez votre question ou parlez..."
-                               onkeypress="if(event.keyCode==13) sendMessage()">
-                        <button class="btn-mic" id="micBtn" onclick="toggleMic()" title="Message vocal">
-                            <i class="fas fa-microphone" id="micIcon"></i>
-                        </button>
-                        <button class="btn btn-send" onclick="sendMessage()">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
-                    <div class="mic-status" id="micStatus">
-                        <i class="fas fa-circle fa-beat"></i> Enregistrement en cours... Parlez maintenant
-                    </div>
-                    <div class="text-center mt-1">
-                        <small class="text-muted"><i class="fas fa-robot"></i> Propulse par Groq Llama 3.3 — <span id="currentMode">Mode General</span></small>
+                    <div class="p-3 bg-white border-top">
+                        <div class="d-flex gap-2 align-items-center">
+                            <input type="text" id="messageInput" class="form-control chat-input" placeholder="Posez votre question..." onkeypress="if(event.keyCode==13) sendMessage()">
+                            <button class="btn-mic" id="micBtn" onclick="toggleMic()" title="Message vocal">
+                                <i class="fas fa-microphone" id="micIcon"></i>
+                            </button>
+                            <button class="btn-send" onclick="sendMessage()">
+                                <i class="fas fa-paper-plane"></i> Envoyer
+                            </button>
+                        </div>
+                        <div class="mic-status" id="micStatus">
+                            <i class="fas fa-circle fa-beat"></i> Enregistrement en cours...
+                        </div>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
 
 <script>
 let currentMode = 'general';
-const modeNames = {
-    general: 'Mode General',
-    diagnostic: 'Mode Diagnostic Panne',
-    suggestion: 'Mode Recommandation Materiel',
-    procedure: 'Mode Procedure Emprunt'
-};
-const modeBadges = {
-    general: 'Assistant UFR',
-    diagnostic: '🔍 Diagnostic',
-    suggestion: '💡 Recommandation',
-    procedure: '📋 Procedure'
-};
+const modeBadges = { general: '🤖 Assistant', diagnostic: '🔍 Diagnostic', suggestion: '💡 Suggestion', procedure: '📋 Procédure' };
+let allHistory = [];
+
+function toggleSidebar() {
+    document.getElementById('historySidebar').classList.toggle('open');
+}
+
+async function loadHistory() {
+    try {
+        const response = await fetch('/chatbot/message/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ message: "", action: "get_history", page: 1 })
+        });
+        const data = await response.json();
+        if (data.status === "success" && data.history) {
+            allHistory = data.history;
+            const historyList = document.getElementById('historyList');
+            if (allHistory.length === 0) {
+                historyList.innerHTML = '<div class="text-center text-muted py-4"><i class="fas fa-comment-slash fa-2x mb-2 d-block"></i>Aucune conversation</div>';
+                return;
+            }
+            let html = '';
+            for (let i = allHistory.length - 1; i >= 0; i--) {
+                const item = allHistory[i];
+                const preview = (item.bot || '').substring(0, 80) + ((item.bot || '').length > 80 ? '...' : '');
+                html += `
+                    <div class="history-item" data-index="${i}">
+                        <div class="history-question">
+                            <i class="fas fa-user-circle"></i> ${escapeHtml((item.user || '').substring(0, 50))}
+                        </div>
+                        <div class="history-preview">${escapeHtml(preview)}</div>
+                        <div class="history-date"><i class="far fa-clock"></i> ${formatDate(item.date)}</div>
+                    </div>
+                `;
+            }
+            historyList.innerHTML = html;
+
+            // Ajouter les écouteurs d'événements après création des éléments
+            document.querySelectorAll('.history-item').forEach(el => {
+                el.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    loadConversation(index);
+                });
+            });
+        }
+    } catch (error) {
+        console.error('Erreur chargement historique:', error);
+    }
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now - date;
+    const hours = diff / (1000 * 60 * 60);
+    if (hours < 1) return 'Il y a ' + Math.floor(diff / (1000 * 60)) + ' min';
+    if (hours < 24) return 'Il y a ' + Math.floor(hours) + 'h';
+    return date.toLocaleDateString('fr-FR');
+}
+
+function loadConversation(index) {
+    const item = allHistory[index];
+    if (!item) return;
+
+    // Ajouter au chat
+    addUserMessage(item.user);
+    addBotMessage(item.bot, item.mode || 'general');
+
+    // Supprimer la classe active de tous et ajouter sur l'élément cliqué
+    document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+    const clickedEl = document.querySelector(`.history-item[data-index="${index}"]`);
+    if (clickedEl) clickedEl.classList.add('active');
+
+    // Scroll en bas
+    const container = document.getElementById('chatContainer');
+    container.scrollTop = container.scrollHeight;
+}
+
+async function clearHistory() {
+    if (!confirm("Effacer tout l'historique des discussions ?")) return;
+    try {
+        const response = await fetch('/chatbot/message/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ message: "", action: "clear_history" })
+        });
+        const data = await response.json();
+        if (data.status === "success") {
+            addBotMessage("✅ L'historique des discussions a été effacé.", "general");
+            loadHistory();
+        }
+    } catch (error) {
+        addBotMessage("❌ Erreur lors de l'effacement.", "general");
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
 function setMode(mode, btn) {
     currentMode = mode;
     document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('mode-active'));
     btn.classList.add('mode-active');
-    document.getElementById('currentMode').textContent = modeNames[mode];
-
-    ['general','diagnostic','suggestion','procedure'].forEach(m => {
+    ['general', 'diagnostic', 'suggestion', 'procedure'].forEach(m => {
         const el = document.getElementById('chips-' + m);
         if (el) el.style.display = m === mode ? 'block' : 'none';
     });
-
     const hints = {
-        diagnostic: "Mode Diagnostic active. Decrivez votre panne et j'analyserai les causes probables.",
-        suggestion: "Mode Recommandation active. Decrivez votre mission terrain et je vous recommande le materiel optimal.",
-        procedure: "Mode Procedure active. Posez vos questions sur les emprunts, restitutions et reservations.",
-        general: "Mode General active. Posez toute question sur le materiel topographique."
+        diagnostic: "🔍 **Mode Diagnostic activé**\n\nDécrivez votre panne et je vous aiderai à en trouver la cause et les solutions.",
+        suggestion: "💡 **Mode Recommandation activé**\n\nDécrivez votre mission terrain et je vous recommanderai le matériel optimal.",
+        procedure: "📋 **Mode Procédure activé**\n\nPosez vos questions sur les emprunts, restitutions ou réservations.",
+        general: "🤖 **Mode Général activé**\n\nPosez toute question sur le matériel topographique."
     };
     addBotMessage(hints[mode], mode);
 }
 
 function addBotMessage(text, mode) {
     const container = document.getElementById('chatContainer');
-
-    // Wrapper
     const wrapper = document.createElement('div');
     wrapper.className = 'message-bot-wrapper';
-
-    // Bulle message
-    const div = document.createElement('div');
-    div.className = 'message-bot mode-' + (mode || 'general');
-    div.innerHTML = '<div class="mode-badge">' + (modeBadges[mode] || 'Assistant') + '</div><br>' + text.replace(/\n/g, '<br>');
-
-    // Barre de copie
-    const copyBar = document.createElement('div');
-    copyBar.className = 'copy-bar';
-    copyBar.innerHTML = '<button class="btn-copy" onclick="copyMessage(this)"><i class="fas fa-copy"></i> Copier</button>';
-
-    wrapper.appendChild(div);
-    wrapper.appendChild(copyBar);
+    wrapper.innerHTML = `<div class="message-bot mode-${mode}"><div class="mode-badge">${modeBadges[mode] || 'Assistant'}</div>${text.replace(/\n/g, '<br>')}</div><div class="copy-bar"><button class="btn-copy" onclick="copyMessage(this)"><i class="fas fa-copy"></i> Copier</button></div>`;
     container.appendChild(wrapper);
     container.scrollTop = container.scrollHeight;
+    loadHistory();
 }
 
 function addUserMessage(text) {
@@ -240,8 +491,7 @@ function showTyping() {
     const div = document.createElement('div');
     div.id = 'typingIndicator';
     div.className = 'typing';
-    const icons = { diagnostic: 'stethoscope', suggestion: 'lightbulb', procedure: 'list-ol', general: 'robot' };
-    div.innerHTML = '<i class="fas fa-' + (icons[currentMode] || 'robot') + ' fa-pulse"></i> Analyse en cours...';
+    div.innerHTML = '<i class="fas fa-robot fa-pulse"></i> <span>Réflexion en cours</span><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
 }
@@ -251,95 +501,45 @@ function hideTyping() {
     if (t) t.remove();
 }
 
-// Fonction copier
 function copyMessage(btn) {
     const wrapper = btn.closest('.message-bot-wrapper');
     const msgDiv = wrapper.querySelector('.message-bot');
-
-    // Récupérer le texte brut sans le badge
     const badge = msgDiv.querySelector('.mode-badge');
     if (badge) badge.remove();
     const text = msgDiv.innerText.trim();
     if (badge) msgDiv.insertBefore(badge, msgDiv.firstChild);
-
     navigator.clipboard.writeText(text).then(() => {
         btn.classList.add('copied');
-        btn.innerHTML = '<i class="fas fa-check"></i> Copie !';
-        setTimeout(() => {
-            btn.classList.remove('copied');
-            btn.innerHTML = '<i class="fas fa-copy"></i> Copier';
-        }, 2000);
-    }).catch(() => {
-        // Fallback si clipboard API non disponible
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        btn.classList.add('copied');
-        btn.innerHTML = '<i class="fas fa-check"></i> Copie !';
-        setTimeout(() => {
-            btn.classList.remove('copied');
-            btn.innerHTML = '<i class="fas fa-copy"></i> Copier';
-        }, 2000);
+        btn.innerHTML = '<i class="fas fa-check"></i> Copié !';
+        setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '<i class="fas fa-copy"></i> Copier'; }, 2000);
     });
 }
 
-// ── MESSAGE VOCAL ──────────────────────────────────────────
-let recognition = null;
-let isRecording = false;
+let recognition = null, isRecording = false;
 
 function toggleMic() {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        alert("Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome ou Edge.");
-        return;
-    }
-
-    if (isRecording) {
-        stopMic();
-    } else {
-        startMic();
-    }
-}
-
-function startMic() {
+    if (!('webkitSpeechRecognition' in window)) { alert("Reconnaissance vocale non supportée. Utilisez Chrome."); return; }
+    if (isRecording) { stopMic(); return; }
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SpeechRecognition();
     recognition.lang = 'fr-FR';
     recognition.continuous = false;
     recognition.interimResults = true;
-
     recognition.onstart = () => {
         isRecording = true;
         document.getElementById('micBtn').classList.add('recording');
         document.getElementById('micIcon').className = 'fas fa-stop';
         document.getElementById('micStatus').classList.add('visible');
-        document.getElementById('messageInput').placeholder = 'Parlez maintenant...';
     };
-
     recognition.onresult = (event) => {
         let transcript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-            transcript += event.results[i][0].transcript;
-        }
+        for (let i = event.resultIndex; i < event.results.length; i++) transcript += event.results[i][0].transcript;
         document.getElementById('messageInput').value = transcript;
     };
-
     recognition.onend = () => {
         stopMic();
-        // Envoyer automatiquement si du texte a été capté
-        const val = document.getElementById('messageInput').value.trim();
-        if (val) sendMessage();
+        if (document.getElementById('messageInput').value.trim()) sendMessage();
     };
-
-    recognition.onerror = (event) => {
-        stopMic();
-        if (event.error === 'not-allowed') {
-            alert("Acces au microphone refuse. Autorisez le micro dans les parametres de votre navigateur.");
-        }
-    };
-
     recognition.start();
 }
 
@@ -349,19 +549,15 @@ function stopMic() {
     document.getElementById('micBtn').classList.remove('recording');
     document.getElementById('micIcon').className = 'fas fa-microphone';
     document.getElementById('micStatus').classList.remove('visible');
-    document.getElementById('messageInput').placeholder = 'Posez votre question ou parlez...';
 }
-// ───────────────────────────────────────────────────────────
 
 async function sendMessage() {
     const input = document.getElementById('messageInput');
     const message = input.value.trim();
     if (!message) return;
-
     addUserMessage(message);
     input.value = '';
     showTyping();
-
     try {
         const response = await fetch('/chatbot/message/', {
             method: 'POST',
@@ -373,25 +569,20 @@ async function sendMessage() {
         addBotMessage(data.response, data.mode || currentMode);
     } catch (error) {
         hideTyping();
-        addBotMessage("Erreur de connexion. Veuillez reessayer.", 'general');
+        addBotMessage("❌ Erreur de connexion. Veuillez réessayer.", 'general');
     }
 }
 
-function sendSuggestion(q) {
-    document.getElementById('messageInput').value = q;
-    sendMessage();
-}
+function sendSuggestion(q) { document.getElementById('messageInput').value = q; sendMessage(); }
 
 function getCookie(name) {
     let v = null;
-    document.cookie.split(';').forEach(c => {
-        c = c.trim();
-        if (c.startsWith(name + '=')) v = decodeURIComponent(c.substring(name.length + 1));
-    });
+    document.cookie.split(';').forEach(c => { c = c.trim(); if (c.startsWith(name + '=')) v = decodeURIComponent(c.substring(name.length + 1)); });
     return v;
 }
+
+loadHistory();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{% static 'js/animations.js' %}"></script>
 </body>
 </html>

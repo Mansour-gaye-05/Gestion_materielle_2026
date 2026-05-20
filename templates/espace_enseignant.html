@@ -201,7 +201,7 @@
             <tbody>
                 {% for demande in demandes %}
                 <tr>
-                    <td class="fw-bold" style="color:#2d3f54">#{{ demande.id }}</td>
+                    <td class="fw-bold" style="color:#2d3f54">{{ demande.id }}</td>
                     <td>
                         <div style="font-weight:600">{{ demande.utilisateur.username }}</div>
                         <small class="text-muted">{{ demande.utilisateur.filiere|default:"" }} {{ demande.utilisateur.niveau|default:"" }}</small>
@@ -256,7 +256,7 @@
         <div class="modal-content" style="border-radius:16px;overflow:hidden">
             <div class="modal-header" style="background:#e74c3c;color:white">
                 <h6 class="modal-title" style="font-family:Manrope;font-weight:700">
-                    <i class="fas fa-times-circle me-2"></i>Refuser la demande #{{ demande.id }}
+                    <i class="fas fa-times-circle me-2"></i>Refuser la demande {{ demande.id }}
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>

@@ -53,15 +53,25 @@
         <div class="profile-header">
             <div class="avatar"><i class="fas fa-user"></i></div>
             <h4 class="profile-name">{{ user.get_full_name|default:user.username }}</h4>
-            <p class="profile-role">{{ user.get_role_display }} ? UFR Sciences de l'Ingenieur</p>
+            <p class="profile-role">{{ user.get_role_display }} - UFR Sciences de l'Ingenieur</p>
         </div>
         <div class="profile-body">
             <form method="post">
                 {% csrf_token %}
+
+                <!-- Section Informations personnelles -->
                 <div class="section-label">Informations personnelles</div>
+
+                <!-- NOUVEAU : Champ Nom d'utilisateur -->
+                <div class="mb-3">
+                    <label class="form-label">Nom d'utilisateur</label>
+                    <input type="text" name="username" class="form-control" value="{{ user.username }}" required>
+                    <div class="form-text text-muted">Le nom d'utilisateur doit être unique.</div>
+                </div>
+
                 <div class="row g-3 mb-3">
                     <div class="col-6">
-                        <label class="form-label">Prenom</label>
+                        <label class="form-label">Prénom</label>
                         <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}">
                     </div>
                     <div class="col-6">
@@ -74,15 +84,17 @@
                     <input type="email" name="email" class="form-control" value="{{ user.email }}">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Telephone</label>
+                    <label class="form-label">Téléphone</label>
                     <input type="tel" name="telephone" class="form-control" value="{{ user.telephone|default:'' }}" placeholder="77 123 45 67">
                 </div>
 
+                <!-- Section Changer le mot de passe -->
                 <div class="section-label mt-4">Changer le mot de passe</div>
                 <div class="mb-3">
                     <label class="form-label">Nouveau mot de passe <small class="text-muted">(laisser vide pour ne pas changer)</small></label>
                     <input type="password" name="new_password" class="form-control" placeholder="Nouveau mot de passe" minlength="6">
                 </div>
+
                 <div class="d-flex gap-2 mt-4">
                     <a href="{% url 'espace_technicien' %}" class="btn btn-outline-secondary w-50" style="border-radius:12px">Annuler</a>
                     <button type="submit" class="btn-save w-50"><i class="fas fa-save me-2"></i> Enregistrer</button>

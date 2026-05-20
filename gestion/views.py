@@ -104,7 +104,7 @@ def ajouter_demande(request, materiel_id):
             quantite=1
         )
 
-        messages.success(request, f'  Demande pour "{materiel.nom}" envoy e avec succ s !')
+        messages.success(request, f'  Demande pour "{materiel.nom}" envoyee avec succes !')
     else:
         messages.error(request, f'  "{materiel.nom}" n\'est pas disponible')
 
@@ -378,7 +378,7 @@ def ajouter_maintenance(request):
             statut='signale'
         )
 
-        messages.success(request, f'Maintenance signal e pour {materiel.nom}')
+        messages.success(request, f'Maintenance signalee pour {materiel.nom}')
         return redirect('gestion_maintenance')
 
     return redirect('gestion_maintenance')
@@ -448,9 +448,9 @@ def modifier_materiel(request, materiel_id):
         materiel.description = request.POST.get('description')
         materiel.etat = request.POST.get('etat')
         materiel.save()
-        log_action(request, 'materiel_modifie', f"{request.user.username} a modifi  le mat riel '{materiel.nom}'", materiel=materiel)
+        log_action(request, 'materiel_modifie', f"{request.user.username} a modifie le materiel '{materiel.nom}'", materiel=materiel)
 
-        messages.success(request, f'Mat riel "{materiel.nom}" modifi ')
+        messages.success(request, f'Materiel "{materiel.nom}" modifie')
         return redirect('gestion_catalogue')
 
     return redirect('gestion_catalogue')
@@ -463,8 +463,8 @@ def supprimer_materiel(request, materiel_id):
     if request.method == 'POST':
         nom = materiel.nom
         materiel.delete()
-        log_action(request, 'materiel_supprime', f"{request.user.username} a supprim  le mat riel '{nom}' (ID: {materiel_id})")
-        messages.success(request, f'Mat riel "{nom}" supprim ')
+        log_action(request, 'materiel_supprime', f"{request.user.username} a supprime le materiel '{nom}' (ID: {materiel_id})")
+        messages.success(request, f'Materiel "{nom}" supprime')
 
     return redirect('gestion_catalogue')
 
@@ -485,8 +485,8 @@ def modifier_role(request, user_id):
         nouveau_role = request.POST.get('role')
         utilisateur.role = nouveau_role
         utilisateur.save()
-        log_action(request, 'role_modifie', f"{request.user.username} a chang  le r le de {utilisateur.username} en '{nouveau_role}'")
-        messages.success(request, f'R le de {utilisateur.username} modifi  en {nouveau_role}')
+        log_action(request, 'role_modifie', f"{request.user.username} a change le role de {utilisateur.username} en '{nouveau_role}'")
+        messages.success(request, f'Role de {utilisateur.username} modifie en {nouveau_role}')
 
     return redirect('gestion_utilisateurs')
 
@@ -1052,11 +1052,7 @@ def nouvelle_demande(request):
 
         # Validation des dates
         if date_debut < aujourd_hui:
-            messages.error(request, '  La date de d but ne peut pas  tre dans le pass .')
-            return render(request, 'nouvelle_demande.html', {'materiels': materiels, 'materiel_preselectionne': materiel_preselectionne})
-
-        if date_fin <= date_debut:
-            messages.error(request, '  La date de fin doit  tre apr s la date de d but.')
+            messages.error(request, '  La date de debut ne peut pas etre dans le passe.')
             return render(request, 'nouvelle_demande.html', {'materiels': materiels, 'materiel_preselectionne': materiel_preselectionne})
 
         materiel = get_object_or_404(Materiel, id=materiel_id)
@@ -1216,14 +1212,14 @@ def rendre_materiel(request, demande_id):
             log_action(
                 request,
                 'materiel_rendu',
-                f"{request.user.username} a rendu le mat riel '{ligne.materiel.nom}' (demande #{demande.id})",
+                f"{request.user.username} a rendu le materiel '{ligne.materiel.nom}' (demande #{demande.id})",
                 demande=demande,
                 materiel=ligne.materiel
             )
 
             # Notification
             Notification.objects.create(
-                message=f"  {request.user.username} a rendu le mat riel '{ligne.materiel.nom}'",
+                message=f"  {request.user.username} a rendu le materiel '{ligne.materiel.nom}'",
                 type='retour',
                 demande=demande
             )
@@ -1237,9 +1233,9 @@ def rendre_materiel(request, demande_id):
             }
         )
 
-        messages.success(request, '  Mat riel rendu avec succ s !')
+        messages.success(request, '  Materiel rendu avec succes !')
     else:
-        messages.error(request, '  Cette demande ne peut pas  tre rendue')
+        messages.error(request, '  Cette demande ne peut pas  etre rendue')
 
     return redirect('mes_demandes')
 
@@ -1282,7 +1278,7 @@ def signaler_panne_emprunt(request, demande_id):
             Maintenance.objects.create(
                 materiel=ligne.materiel,
                 type='panne',
-                description=f"{description} (signal  par {request.user.username} le {timezone.now().strftime('%d/%m/%Y')})",
+                description=f"{description} (signale par {request.user.username} le {timezone.now().strftime('%d/%m/%Y')})",
                 statut='signale'
             )
             ligne.materiel.etat = 'maintenance'
@@ -1294,9 +1290,9 @@ def signaler_panne_emprunt(request, demande_id):
                 type='maintenance'
             )
 
-        messages.warning(request, '  Panne signal e. Un technicien va prendre en charge le mat riel.')
+        messages.warning(request, '  Panne signalee. Un technicien va prendre en charge le materiel.')
     else:
-        messages.error(request, '  Action non autoris e')
+        messages.error(request, '  Action non autorisee')
 
     return redirect('mes_demandes')
 
@@ -1374,121 +1370,223 @@ def chatbot_message(request):
     if request.method == "POST":
         import requests as http_requests
         from django.conf import settings
+        from django.core.paginator import Paginator
 
         data = json.loads(request.body)
         user_message = data.get("message", "")
         mode = data.get("mode", "general")
+        action = data.get("action", "send")  # send, clear_history, get_history
 
         conversation, created = ConversationChat.objects.get_or_create(
             utilisateur=request.user,
             defaults={"messages": []}
         )
 
-        historique = conversation.messages[-20:]
+        # Action : Effacer l'historique
+        if action == "clear_history":
+            conversation.messages = []
+            conversation.save()
+            return JsonResponse({"status": "success", "message": "Historique effacé"})
 
-        # Detecter automatiquement le mode selon le message
+        # Action : Récupérer l'historique
+        if action == "get_history":
+            page = int(data.get("page", 1))
+            per_page = 20
+            messages_list = conversation.messages[-100:]  # Derniers 100 messages max
+            paginator = Paginator(messages_list, per_page)
+            current_page = paginator.page(page)
+            return JsonResponse({
+                "status": "success",
+                "history": list(current_page.object_list),
+                "total_pages": paginator.num_pages,
+                "current_page": page,
+                "has_next": current_page.has_next(),
+                "has_previous": current_page.has_previous()
+            })
+
+        historique = conversation.messages[-30:]  # Garder les 30 derniers messages
+
+        # Détection améliorée des intentions
         msg_lower = user_message.lower()
-        mots_panne = ["allume", "marche", "fonctionne", "bloque", "erreur", "probleme", "panne", "tombe", "casse", "ecran", "batterie", "signal", "freeze"]
-        mots_suggestion = ["recommande", "conseil", "choisir", "quel materiel", "mission", "terrain", "leve", "cadastre", "implantation", "nivellement"]
-        mots_procedure = ["emprunter", "restituer", "rendre", "recuperer", "demande", "reservation", "comment faire"]
-        mots_ameliorer = ["ameliore", "ameliorer", "plus detail", "plus precis", "developpe", "approfondi", "explique mieux", "plus complet", "detaille", "autre facon", "reformule", "precisement", "peux tu developper"]
 
-        # Récupérer la dernière réponse de l'assistant (si elle existe)
+        mots_panne = ["allume", "marche", "fonctionne", "bloque", "erreur", "probleme", "panne", "tombe", "casse",
+                      "ecran", "batterie", "signal", "freeze", "plante", "redemarre", "eteint", "chauffe", "bruit",
+                      "affichage", "ne s'allume", "ne fonctionne"]
+        mots_suggestion = ["recommande", "conseil", "choisir", "quel materiel", "mission", "terrain", "leve",
+                           "cadastre", "implantation", "nivellement", "topographie", "projet", "besoin", "pour faire",
+                           "comment mesurer", "quel appareil"]
+        mots_procedure = ["emprunter", "restituer", "rendre", "recuperer", "demande", "reservation", "comment faire",
+                          "procedure", "etapes", "marches a suivre", "comment obtenir", "delai", "combien de temps"]
+        mots_ameliorer = ["ameliore", "ameliorer", "plus detail", "plus precis", "developpe", "approfondi",
+                          "explique mieux", "plus complet", "detaille", "autre facon", "reformule", "precisement",
+                          "peux tu developper", "ajoute des details", "plus d infos", "plus technique"]
+        mots_historique = ["historique", "conversation précédente", "ce qu'on a dit", "messages précédents",
+                           "rappelle moi", "c'était quoi"]
+        mots_remerciement = ["merci", "thanks", "super", "parfait", "top", "genial", "cool", "merci beaucoup", "bravo",
+                             "excellent"]
+
+        # Récupérer la dernière réponse
         derniere_reponse_assistant = ""
         for msg in reversed(historique):
             if "bot" in msg:
                 derniere_reponse_assistant = msg.get("bot", "")
                 break
 
+        # Détection du mode
         if any(m in msg_lower for m in mots_ameliorer):
             detected_mode = "amelioration"
+        elif any(m in msg_lower for m in mots_historique):
+            detected_mode = "historique"
         elif any(m in msg_lower for m in mots_panne):
             detected_mode = "diagnostic"
         elif any(m in msg_lower for m in mots_suggestion):
             detected_mode = "suggestion"
         elif any(m in msg_lower for m in mots_procedure):
             detected_mode = "procedure"
+        elif any(m in msg_lower for m in mots_remerciement):
+            detected_mode = "remerciement"
         else:
             detected_mode = mode
 
-        system_prompt = """Tu es un assistant expert en materiel topographique de l'UFR Sciences de l'Ingenieur, Universite de Thies, Senegal.
+        # ==================== CONSTRUCTION DU PROMPT ====================
 
-Materiels disponibles : Stations totales Leica TS16, GPS GNSS differentiel i50/i73, Niveaux optiques electroniques, GPS Garmin de poche.
+        system_prompt = """Tu es un assistant expert et convivial en matériel topographique pour l'UFR Sciences de l'Ingénieur, Université de Thiès, Sénégal.
 
-REGLES ABSOLUES :
-- Reponds UNIQUEMENT sur le materiel topographique, les emprunts, les pannes, les procedures
-- Si hors-sujet : decline poliment
-- Toujours en francais, structure, concis
-- Utilise des emojis pertinents
-- TU AS UNE MEMOIRE : utilise TOUJOURS l'historique de la conversation pour contextualiser tes reponses"""
+**Matériels disponibles :**
+- Stations totales Leica TS16 / TS13 (précision 1 seconde)
+- GPS GNSS différentiel i50 / i73 (précision RTK 1-2 cm)
+- Niveaux optiques et électroniques (précision ±0.5mm/30m)
+- GPS Garmin de poche (navigation, précision 3-5m)
 
-        if detected_mode == "amelioration":
+**TON STYLE :**
+- Sois naturel, amical et professionnel
+- Utilise des emojis avec parcimonie
+- Structure tes réponses avec des listes claires
+- Adopte un ton qui inspire confiance
+- Termine parfois par une question ouverte
+
+**RÈGLES :**
+- Réponds UNIQUEMENT sur le matériel topographique, les emprunts, les pannes et les procédures
+- Si hors-sujet, décline poliment
+- Utilise l'historique de la conversation que tu reçois pour contextualiser tes réponses
+"""
+
+        # Mode HISTORIQUE
+        if detected_mode == "historique":
+            # Construire un résumé de l'historique
+            historique_resume = "\n".join([
+                f"Utilisateur : {msg['user']}\nAssistant : {msg['bot'][:200]}..."
+                for msg in historique[-5:] if "user" in msg and "bot" in msg
+            ])
             system_prompt += f"""
 
-MODE AMELIORATION - INSTRUCTION TRES IMPORTANTE :
-L'utilisateur te demande d'AMELIORER ou de PRECISER ta derniere reponse.
+MODE HISTORIQUE - RAPPEL DE CONVERSATION
 
-Voici ta DERNIERE REPONSE (celle que tu dois ameliorer) :
+L'utilisateur demande à voir ou à se souvenir de la conversation précédente.
+
+Voici l'historique récent de votre conversation :
+---
+{historique_resume}
+---
+
+Réponds à l'utilisateur en lui résumant ce qui a été dit précédemment, en répondant à sa question spécifique sur l'historique.
+"""
+
+        # Mode AMELIORATION
+        elif detected_mode == "amelioration":
+            system_prompt += f"""
+
+MODE AMÉLIORATION - DÉVELOPPEMENT DE LA RÉPONSE
+
+L'utilisateur trouve que ta réponse manque de détails.
+
+Ta DERNIÈRE RÉPONSE à améliorer :
 ---
 {derniere_reponse_assistant}
 ---
 
-CE QUE TU DOIS FAIRE ABSOLUMENT :
-1. Ne reponds PAS a une nouvelle question
-2. Prends UNIQUEMENT la reponse ci-dessus et AMELIORE-LA
-3. Ajoute des details techniques precis (chiffres, specifications, protocoles)
-4. Donne des exemples concrets d'utilisation sur le terrain
-5. Ajoute des precautions ou astuces pratiques
-6. Structure ta nouvelle reponse differemment (utilise des listes, des emojis)
-7. Soit PLUS LONG et PLUS COMPLET que la version precedente
+**À faire :**
+1. Améliore UNIQUEMENT la réponse ci-dessus
+2. Ajoute des détails techniques (chiffres, protocoles)
+3. Donne des conseils pratiques
+4. Sois plus complet (+50% de contenu)
+"""
 
-IMPORTANT : Si l'utilisateur a pose une question avant, c'est DEJA dans l'historique. Concentre-toi UNIQUEMENT sur l'amelioration de ta reponse ci-dessus."""
-
+        # Mode DIAGNOSTIC
         elif detected_mode == "diagnostic":
             system_prompt += """
 
-MODE DIAGNOSTIC :
-🔍 DIAGNOSTIC : [appareil]
-📋 Causes probables (de la plus simple a la plus complexe) :
-   1. [cause 1]
-   2. [cause 2]
-🔧 Solutions etape par etape :
-   Etape 1 : [action]
-   Etape 2 : [action]
-🚨 Si persiste : Signalez via l'application"""
+MODE DIAGNOSTIC - STRUCTURE À SUIVRE :
 
+🔍 **Diagnostic :** [appareil concerné]
+
+📋 **Causes probables (du simple au complexe) :**
+1. [cause 1]
+2. [cause 2]
+
+🔧 **Solutions étape par étape :**
+• Étape 1 : [action simple]
+• Étape 2 : [action suivante]
+
+💡 **Astuce terrain :** [conseil pratique]
+
+🚨 **Si persiste :** Signalez via "Mes demandes" > "Signaler une panne"
+"""
+
+        # Mode SUGGESTION
         elif detected_mode == "suggestion":
             system_prompt += """
 
-MODE SUGGESTION :
-📌 MISSION : [type detecte]
-🎯 MATERIEL RECOMMANDE :
-   • [principal] - [raison]
-   • [complement] - [raison]
-💡 CONSEILS TERRAIN :
-   • [conseil pratique 1]
-   • [conseil pratique 2]
-⏱️ Duree recommandee : [X jours]"""
+MODE SUGGESTION - STRUCTURE À SUIVRE :
 
+📌 **Mission identifiée :** [type de mission]
+
+🎯 **Matériel recommandé :**
+• **Principal :** [nom] — [raison]
+• **Complémentaire :** [nom] — [utilité]
+
+💡 **Conseils terrain :**
+• [conseil 1]
+• [conseil 2]
+
+⏱️ **Durée recommandée :** [X jours]
+"""
+
+        # Mode PROCEDURE
         elif detected_mode == "procedure":
             system_prompt += """
 
-MODE PROCEDURE :
-📋 PROCEDURE [action] :
-1. [etape 1]
-2. [etape 2]
-3. [etape 3]"""
+MODE PROCÉDURE - STRUCTURE À SUIVRE :
 
-        # Construire les messages avec historique
+📋 **Procédure [action] :**
+
+1. **Étape 1 :** [action précise]
+2. **Étape 2 :** [action suivante]
+3. **Étape 3 :** [action finale]
+
+ℹ️ **À savoir :** [info complémentaire]
+"""
+
+        # Mode REMERCIEMENT
+        elif detected_mode == "remerciement":
+            system_prompt += """
+
+MODE REMERCIEMENT - RÉPONSE CHALEUREUSE
+
+L'utilisateur vous remercie. Répondez avec enthousiasme et proposez votre aide pour la suite.
+
+Exemple : "Avec plaisir ! N'hésitez pas si vous avez d'autres questions. Bon terrain ! 🚀"
+"""
+
+        # Construction des messages pour l'API
         groq_messages = [{"role": "system", "content": system_prompt}]
 
-        # Ajouter l'historique (sauf si mode amelioration, on ne veut pas polluer)
-        if detected_mode != "amelioration":
-            for msg in historique[-10:]:
+        # Ajouter l'historique (sauf pour mode amélioration)
+        if detected_mode not in ["amelioration", "historique"]:
+            for msg in historique[-8:]:
                 groq_messages.append({"role": "user", "content": msg["user"]})
                 groq_messages.append({"role": "assistant", "content": msg["bot"]})
 
-        # Message actuel
         groq_messages.append({"role": "user", "content": user_message})
 
         try:
@@ -1503,27 +1601,36 @@ MODE PROCEDURE :
                     "messages": groq_messages,
                     "max_tokens": 1000,
                     "temperature": 0.7,
-                    "top_p": 0.9
                 },
-                timeout=20
+                timeout=25
             )
             if response.status_code == 200:
                 bot_response = response.json()["choices"][0]["message"]["content"]
             else:
-                bot_response = "Erreur de connexion a l'IA. Veuillez reessayer."
+                bot_response = "🔌 Désolé, l'assistant rencontre une difficulté. Veuillez réessayer."
+        except http_requests.exceptions.Timeout:
+            bot_response = "⏰ L'assistant met trop de temps à répondre. Réessayez."
         except Exception as e:
-            bot_response = f"Service IA temporairement indisponible. Erreur: {str(e)[:100]}"
+            bot_response = "🌐 Service momentanément indisponible. Réessayez plus tard."
 
-        # Sauvegarder la conversation
+        # Sauvegarde dans l'historique
         msgs = conversation.messages
-        msgs.append({"user": user_message, "bot": bot_response, "date": str(timezone.now()), "mode": detected_mode})
-        conversation.messages = msgs[-50:]
+        msgs.append({
+            "user": user_message,
+            "bot": bot_response,
+            "date": str(timezone.now()),
+            "mode": detected_mode
+        })
+        conversation.messages = msgs[-100:]  # Garder les 100 derniers messages
         conversation.save()
 
-        return JsonResponse({"response": bot_response, "mode": detected_mode})
+        return JsonResponse({
+            "response": bot_response,
+            "mode": detected_mode,
+            "history_count": len(msgs)
+        })
 
-    return JsonResponse({"error": "Methode non autorisee"}, status=405)
-
+    return JsonResponse({"error": "Méthode non autorisée"}, status=405)
 
 # ==================== JOURNAL D'ACTIVITE ====================
 
@@ -1880,3 +1987,117 @@ def annuler_demande(request, demande_id):
         messages.error(request, 'Cette demande ne peut pas etre annulee.')
 
     return redirect('mes_demandes')
+
+
+@login_required
+def changer_nom_utilisateur(request):
+    if request.method == 'POST':
+        nouveau_nom = request.POST.get('nouveau_username')
+        if nouveau_nom:
+            # Vérifier si le nom existe déjà
+            if Utilisateur.objects.filter(username=nouveau_nom).exclude(id=request.user.id).exists():
+                messages.error(request, 'Ce nom d\'utilisateur est déjà pris.')
+            else:
+                ancien_nom = request.user.username
+                request.user.username = nouveau_nom
+                request.user.save()
+                log_action(request, 'modification_profil',
+                           f"{ancien_nom} a changé son nom d'utilisateur en {nouveau_nom}")
+                messages.success(request, f'Nom d\'utilisateur changé avec succès en "{nouveau_nom}"')
+        else:
+            messages.error(request, 'Le nom d\'utilisateur ne peut pas être vide.')
+
+        # Rediriger vers le profil approprié
+        if request.user.role == 'enseignant':
+            return redirect('profil_enseignant')
+        elif request.user.role == 'technicien':
+            return redirect('profil_technicien')
+        else:
+            return redirect('profil_etudiant')
+
+    return redirect('espace_etudiant')
+
+
+@login_required
+def profil_technicien(request):
+    if request.method == 'POST':
+        # Récupérer les données
+        username = request.POST.get('username')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        telephone = request.POST.get('telephone')
+        new_password = request.POST.get('new_password')
+
+        # Vérifier si le nom d'utilisateur existe déjà
+        if username and username != request.user.username:
+            if Utilisateur.objects.filter(username=username).exists():
+                messages.error(request, 'Ce nom d\'utilisateur est déjà pris.')
+                return redirect('profil_technicien')
+            request.user.username = username
+
+        # Mettre à jour les champs
+        request.user.first_name = first_name
+        request.user.last_name = last_name
+        request.user.email = email
+        request.user.telephone = telephone
+
+        # Changer le mot de passe si fourni
+        if new_password:
+            if len(new_password) >= 6:
+                request.user.set_password(new_password)
+                messages.success(request, 'Votre mot de passe a été modifié. Veuillez vous reconnecter.')
+                from django.contrib.auth import update_session_auth_hash
+                update_session_auth_hash(request, request.user)
+            else:
+                messages.error(request, 'Le mot de passe doit contenir au moins 6 caractères.')
+
+        request.user.save()
+        messages.success(request, 'Votre profil a été mis à jour avec succès !')
+        return redirect('profil_technicien')
+
+    return render(request, 'profil_technicien.html')
+
+
+@login_required
+def profil_enseignant(request):
+    if request.method == 'POST':
+        # Récupérer les données
+        username = request.POST.get('username')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        telephone = request.POST.get('telephone')
+        filiere = request.POST.get('filiere')
+        new_password = request.POST.get('new_password')
+
+        # Vérifier si le nom d'utilisateur existe déjà
+        if username and username != request.user.username:
+            if Utilisateur.objects.filter(username=username).exists():
+                messages.error(request, 'Ce nom d\'utilisateur est déjà pris.')
+                return redirect('profil_enseignant')
+            request.user.username = username
+
+        # Mettre à jour les champs
+        request.user.first_name = first_name
+        request.user.last_name = last_name
+        request.user.email = email
+        request.user.telephone = telephone
+        request.user.filiere = filiere
+
+        # Changer le mot de passe si fourni
+        if new_password:
+            if len(new_password) >= 6:
+                request.user.set_password(new_password)
+                from django.contrib.auth import update_session_auth_hash
+                update_session_auth_hash(request, request.user)
+                messages.success(request, 'Mot de passe modifié. Veuillez vous reconnecter.')
+            else:
+                messages.error(request, 'Le mot de passe doit contenir au moins 6 caractères.')
+
+        request.user.save()
+        messages.success(request, 'Profil mis à jour avec succès !')
+        return redirect('profil_enseignant')
+
+    return render(request, 'profil_enseignant.html')
+

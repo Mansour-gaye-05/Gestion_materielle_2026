@@ -128,15 +128,15 @@
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
                         <strong>Demande soumise</strong>
-                        {{ demande.date_demande|date:"d/m/Y � H:i" }}
+                        {{ demande.date_demande|date:"d/m/Y à H:i" }}
                     </div>
                 </div>
                 {% if demande.statut == 'approuvee' or demande.statut == 'en_cours' or demande.statut == 'restituee' %}
                 <div class="timeline-item">
                     <div class="timeline-dot success"></div>
                     <div class="timeline-content">
-                        <strong>Demande approuv�e</strong>
-                        {% if demande.date_validation %}{{ demande.date_validation|date:"d/m/Y � H:i" }}{% endif %}
+                        <strong>Demande approuvee</strong>
+                        {% if demande.date_validation %}{{ demande.date_validation|date:"d/m/Y à H:i" }}{% endif %}
                         {% if demande.valide_par %}par {{ demande.valide_par.username }}{% endif %}
                     </div>
                 </div>
@@ -144,7 +144,7 @@
                 <div class="timeline-item">
                     <div class="timeline-dot danger"></div>
                     <div class="timeline-content">
-                        <strong>Demande refus�e</strong>
+                        <strong>Demande refusee</strong>
                         {% if demande.motif_refus %}{{ demande.motif_refus }}{% endif %}
                     </div>
                 </div>
@@ -152,8 +152,8 @@
                 <div class="timeline-item">
                     <div class="timeline-dot danger"></div>
                     <div class="timeline-content">
-                        <strong>Demande annul�e</strong>
-                        Annul�e par l'�tudiant
+                        <strong>Demande annulee</strong>
+                        Annulee par l'etudiant
                     </div>
                 </div>
                 {% endif %}
@@ -161,7 +161,7 @@
                 <div class="timeline-item">
                     <div class="timeline-dot warning"></div>
                     <div class="timeline-content">
-                        <strong>Mat�riel r�cup�r�</strong>
+                        <strong>Materiel recupere</strong>
                         En cours d'utilisation
                     </div>
                 </div>
@@ -170,8 +170,8 @@
                 <div class="timeline-item">
                     <div class="timeline-dot success"></div>
                     <div class="timeline-content">
-                        <strong>Mat�riel restitu�</strong>
-                        Retourn� au laboratoire
+                        <strong>Materiel restitue</strong>
+                        Retourne au laboratoire
                     </div>
                 </div>
                 {% endif %}

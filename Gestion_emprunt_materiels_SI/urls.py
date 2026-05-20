@@ -84,6 +84,7 @@ urlpatterns = [
          views.pdf_bon_sortie,
          name='pdf_bon_sortie'),
     path('signaler-panne-page/<int:demande_id>/', views.signaler_panne_page, name='signaler_panne_page'),
+    path('changer-nom-utilisateur/', views.changer_nom_utilisateur, name='changer_nom_utilisateur'),
 ]
 
 if settings.DEBUG:
