@@ -821,6 +821,8 @@ def deconnexion(request):
 
 def inscription(request):
     if request.method == 'POST':
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
         username = request.POST.get('username')
         email = request.POST.get('email')
         password = request.POST.get('password')
@@ -829,33 +831,41 @@ def inscription(request):
         niveau = request.POST.get('niveau')
         telephone = request.POST.get('telephone')
 
-        # Validation email universitaire (format: prenom.nom3@univ-thies.sn)
+        # Validation email universitaire
         if not re.match(r'^[a-z]+\.[a-z]+[0-9]@univ-thies\.sn$', email):
             messages.error(request,
                            'Format d\'email invalide. Utilisez: prenom.nom3@univ-thies.sn (ex: astou.gueye3@univ-thies.sn)')
             return render(request, 'inscription.html')
+
+        # Validation prénom et nom
+        if not first_name or not last_name:
+            messages.error(request, 'Veuillez renseigner votre prénom et votre nom.')
+            return render(request, 'inscription.html')
+
         if password == password2:
             if not Utilisateur.objects.filter(username=username).exists():
                 utilisateur = Utilisateur.objects.create_user(
                     username=username,
                     email=email,
                     password=password,
+                    first_name=first_name,
+                    last_name=last_name,
                     role='etudiant',
                     filiere=filiere,
                     niveau=niveau,
                     telephone=telephone
                 )
                 login(request, utilisateur)
-                log_action(request, 'inscription', f"Nouveau compte cree : {username} ({filiere} - {niveau})")
-                messages.success(request, f'Bienvenue {username} ! Votre compte a ete cree avec succes.')
+                log_action(request, 'inscription',
+                           f"Nouveau compte créé : {first_name} {last_name} ({username}) - {filiere} - {niveau}")
+                messages.success(request, f'Bienvenue {first_name} {last_name} ! Votre compte a été créé avec succès.')
                 return redirect('espace_etudiant')
             else:
-                messages.error(request, 'Ce nom d\'utilisateur existe d j ')
+                messages.error(request, 'Ce nom d\'utilisateur existe déjà.')
         else:
-            messages.error(request, 'Les mots de passe ne correspondent pas')
+            messages.error(request, 'Les mots de passe ne correspondent pas.')
 
     return render(request, 'inscription.html')
-
 
 @login_required
 
