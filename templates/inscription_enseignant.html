@@ -1,0 +1,283 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription Enseignant - UFR Sciences</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            font-family: 'Inter', sans-serif;
+        }
+        .register-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 550px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+        .register-logo {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .register-logo i {
+            font-size: 2.5rem;
+            color: #8e44ad;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 20px;
+        }
+        .register-title {
+            color: white;
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .register-subtitle {
+            color: rgba(255,255,255,0.5);
+            text-align: center;
+            font-size: 0.8rem;
+            margin-bottom: 30px;
+        }
+        .form-label {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .form-label i {
+            margin-right: 5px;
+            color: #8e44ad;
+        }
+        .required-star {
+            color: #e74c3c;
+            margin-left: 3px;
+        }
+        .form-control, .form-select {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 12px;
+            padding: 10px 16px;
+        }
+        .form-control:focus, .form-select:focus {
+            background: rgba(255,255,255,0.15);
+            border-color: #8e44ad;
+            box-shadow: 0 0 0 3px rgba(142,68,173,0.2);
+            color: white;
+        }
+        .form-control::placeholder {
+            color: rgba(255,255,255,0.4);
+        }
+        .form-select option {
+            background: #2c3e50;
+            color: white;
+        }
+        .btn-register {
+            background: linear-gradient(135deg, #8e44ad, #6c3483);
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-weight: 600;
+            width: 100%;
+            color: white;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(142,68,173,0.3);
+        }
+        .form-text {
+            color: rgba(255,255,255,0.4);
+            font-size: 0.7rem;
+        }
+        .divider {
+            border-color: rgba(255,255,255,0.1);
+            margin: 20px 0;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .login-link a {
+            color: #8e44ad;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .login-link a:hover {
+            color: #a569bd;
+        }
+        .row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+        .col-6 { flex: 0 0 calc(50% - 6px); }
+
+        /* Styles pour les alertes */
+        .alert {
+            background: rgba(231,76,60,0.2);
+            border: 1px solid rgba(231,76,60,0.3);
+            color: #e74c3c;
+            border-radius: 12px;
+        }
+        .alert-success {
+            background: rgba(39,174,96,0.2);
+            border-color: rgba(39,174,96,0.3);
+            color: #2ecc71;
+        }
+        .btn-close-white {
+            filter: invert(1);
+        }
+
+        /* Icône info */
+        .info-icon {
+            color: #8e44ad;
+            cursor: help;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="register-card">
+    <div class="register-logo">
+        <i class="fas fa-chalkboard-teacher"></i>
+    </div>
+    <h3 class="register-title">Inscription Enseignant</h3>
+    <p class="register-subtitle">Créez votre compte enseignant</p>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'success' %}alert-success{% endif %} alert-dismissible fade show mb-3">
+                {{ message }}
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Prénom et Nom -->
+        <div class="row">
+            <div class="col-6">
+                <label class="form-label"><i class="fas fa-user"></i> Prénom <span class="required-star">*</span></label>
+                <input type="text" name="first_name" class="form-control" placeholder="Votre prénom" required>
+            </div>
+            <div class="col-6">
+                <label class="form-label"><i class="fas fa-user"></i> Nom <span class="required-star">*</span></label>
+                <input type="text" name="last_name" class="form-control" placeholder="Votre nom" required>
+            </div>
+        </div>
+
+        <!-- Nom d'utilisateur -->
+        <div class="mb-3">
+            <label class="form-label"><i class="fas fa-user-tag"></i> Nom d'utilisateur <span class="required-star">*</span></label>
+            <input type="text" name="username" class="form-control" placeholder="Ex: prof.diallo" required>
+            <div class="form-text">Utilisé pour vous connecter</div>
+        </div>
+
+        <!-- Email -->
+        <div class="mb-3">
+            <label class="form-label"><i class="fas fa-envelope"></i> Email universitaire <span class="required-star">*</span></label>
+            <input type="email" name="email" class="form-control" placeholder="prenom.nom3@univ-thies.sn" required>
+            <div class="form-text">Format: prenom.nom3@univ-thies.sn</div>
+        </div>
+
+        <!-- Mot de passe -->
+        <div class="row">
+            <div class="col-6">
+                <label class="form-label"><i class="fas fa-lock"></i> Mot de passe <span class="required-star">*</span></label>
+                <input type="password" name="password" class="form-control" placeholder="Min. 6 caractères" required minlength="6">
+            </div>
+            <div class="col-6">
+                <label class="form-label"><i class="fas fa-lock"></i> Confirmer <span class="required-star">*</span></label>
+                <input type="password" name="password2" class="form-control" placeholder="Confirmer le mot de passe" required>
+            </div>
+        </div>
+
+        <!-- Téléphone -->
+        <div class="mb-3">
+            <label class="form-label"><i class="fas fa-phone"></i> Téléphone</label>
+            <input type="tel" name="telephone" class="form-control" placeholder="77 123 45 67">
+            <div class="form-text">Optionnel, pour les contacts urgents</div>
+        </div>
+
+        <!-- Département / Spécialité (AMÉLIORÉ) -->
+        <div class="mb-3">
+            <label class="form-label">
+                <i class="fas fa-building"></i> Département / Spécialité
+                <span class="required-star">*</span>
+                <i class="fas fa-info-circle info-icon" title="Sélectionnez votre département d'enseignement ou votre spécialité"></i>
+            </label>
+            <select name="filiere" class="form-select" required>
+                <option value="">-- Sélectionnez votre département --</option>
+                <option value="Genie Civil">🏗️ Génie Civil</option>
+                <option value="Topographie">🗺️ Topographie</option>
+                <option value="Geomatique">📡 Géomatique</option>
+                <option value="Geotechnique">⛰️ Géotechnique</option>
+                <option value="Hydraulique">💧 Hydraulique</option>
+                <option value="Environnement">🌳 Environnement</option>
+                <option value="Transport">🚚 Transport et Logistique</option>
+                <option value="BTP">🏗️ Bâtiment et Travaux Publics</option>
+            </select>
+            <div class="form-text">Choisissez le département dans lequel vous enseignez</div>
+        </div>
+
+        <button type="submit" class="btn-register">
+            <i class="fas fa-user-plus me-2"></i> Créer mon compte enseignant
+        </button>
+    </form>
+
+    <hr class="divider">
+    <div class="login-link">
+        Déjà un compte ? <a href="{% url 'connexion_enseignant' %}">Se connecter</a>
+    </div>
+    <div class="login-link mt-2">
+        <a href="{% url 'accueil' %}" style="color:rgba(255,255,255,0.5); font-size:0.8rem">
+            <i class="fas fa-arrow-left me-1"></i> Retour à l'accueil
+        </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Tooltip pour l'icône info
+    document.querySelectorAll('.info-icon').forEach(icon => {
+        icon.addEventListener('mouseenter', function(e) {
+            const title = this.getAttribute('title');
+            // Créer un tooltip simple
+            const tooltip = document.createElement('div');
+            tooltip.className = 'custom-tooltip';
+            tooltip.textContent = title;
+            tooltip.style.position = 'absolute';
+            tooltip.style.background = '#8e44ad';
+            tooltip.style.color = 'white';
+            tooltip.style.padding = '5px 10px';
+            tooltip.style.borderRadius = '8px';
+            tooltip.style.fontSize = '0.7rem';
+            tooltip.style.zIndex = '1000';
+            tooltip.style.maxWidth = '200px';
+            tooltip.style.textAlign = 'center';
+            document.body.appendChild(tooltip);
+
+            const rect = this.getBoundingClientRect();
+            tooltip.style.left = rect.left + 'px';
+            tooltip.style.top = (rect.bottom + 5) + 'px';
+
+            this.addEventListener('mouseleave', function() {
+                tooltip.remove();
+            });
+        });
+    });
+</script>
+</body>
+</html>

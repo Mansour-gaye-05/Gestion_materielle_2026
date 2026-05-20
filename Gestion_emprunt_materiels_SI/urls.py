@@ -80,6 +80,11 @@ urlpatterns = [
          name='pdf_bon_sortie'),
     path('signaler-panne-page/<int:demande_id>/', views.signaler_panne_page, name='signaler_panne_page'),
     path('changer-nom-utilisateur/', views.changer_nom_utilisateur, name='changer_nom_utilisateur'),
+    path('connexion-enseignant/', views.connexion_enseignant, name='connexion_enseignant'),
+    path('inscription-enseignant/', views.inscription_enseignant, name='inscription_enseignant'),
+    path('espace-enseignant/', views.espace_enseignant, name='espace_enseignant'),
+    path('enseignant/valider/<int:demande_id>/', views.enseignant_valider_demande, name='enseignant_valider_demande'),
+    path('profil-enseignant/', views.profil_enseignant, name='profil_enseignant'),
 ]
 
 if settings.DEBUG:

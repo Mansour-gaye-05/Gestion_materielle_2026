@@ -34,6 +34,35 @@ def log_action(request_or_user, action, description, demande=None, materiel=None
         materiel=materiel
     )
 
+
+def verifier_retards():
+    """
+    Met à jour le statut des demandes en retard
+    Retourne le nombre de demandes marquées en retard
+    """
+    aujourdhui = timezone.now().date()
+
+    # Demandes en cours dont la date de fin est dépassée
+    demandes_en_retard = Demande.objects.filter(
+        statut='en_cours',
+        date_fin__lt=aujourdhui
+    )
+
+    count = demandes_en_retard.count()
+
+    for demande in demandes_en_retard:
+        demande.statut = 'retard'
+        demande.save()
+        # Ajouter une notification
+        Notification.objects.create(
+            message=f"⚠️ Demande #{demande.id} en retard depuis le {demande.date_fin.strftime('%d/%m/%Y')}",
+            type='retard',
+            demande=demande
+        )
+        log_action(None, 'retard_detecte', f"Demande #{demande.id} marquee en retard", demande=demande)
+
+    return count
+
 # ==================== PAGE D'ACCUEIL ====================
 
 def accueil(request):
@@ -115,6 +144,9 @@ def ajouter_demande(request, materiel_id):
 
 @staff_member_required
 def dashboard(request):
+    # Vérifier les retards avant tout
+    verifier_retards()
+
     from django.db.models import Avg, F, ExpressionWrapper, DurationField
     aujourdhui = timezone.now().date()
     date_debut_30 = aujourdhui - timedelta(days=29)
@@ -300,9 +332,11 @@ def dashboard(request):
 
 @staff_member_required
 def gestion_demandes(request):
+    # Vérifier les retards avant tout
+    verifier_retards()
+
     demandes = Demande.objects.all().order_by('-date_demande')
     return render(request, 'gestion_demandes.html', {'demandes': demandes})
-
 
 @staff_member_required
 def valider_demande(request, demande_id):
@@ -872,11 +906,12 @@ def inscription(request):
 @login_required
 
 @login_required
-
 @login_required
 def profil_enseignant(request):
-    if request.user.role not in ['enseignant', 'admin']:
+    if request.user.role not in ['enseignant', 'admin'] and not request.user.is_superuser:
+        messages.error(request, 'Accès non autorisé.')
         return redirect('accueil')
+
     if request.method == 'POST':
         user = request.user
         user.first_name = request.POST.get('first_name', '')
@@ -885,12 +920,20 @@ def profil_enseignant(request):
         user.telephone = request.POST.get('telephone', '')
         user.filiere = request.POST.get('filiere', '')
         new_password = request.POST.get('new_password', '')
+
         if new_password:
-            user.set_password(new_password)
-            messages.success(request, 'Mot de passe mis a jour.')
+            if len(new_password) >= 6:
+                user.set_password(new_password)
+                from django.contrib.auth import update_session_auth_hash
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Mot de passe mis à jour.')
+            else:
+                messages.error(request, 'Le mot de passe doit contenir au moins 6 caractères.')
+
         user.save()
-        messages.success(request, 'Profil mis a jour avec succes.')
+        messages.success(request, 'Profil mis à jour avec succès.')
         return redirect('profil_enseignant')
+
     return render(request, 'profil_enseignant.html')
 
 @login_required
@@ -929,76 +972,74 @@ def espace_technicien(request):
         'stats': stats,
     })
 
+
 def espace_enseignant(request):
     if request.user.role not in ['enseignant', 'admin'] and not request.user.is_superuser:
-        messages.error(request, 'Acces non autorise.')
+        messages.error(request, 'Accès non autorisé.')
         return redirect('accueil')
-    
-    demandes = Demande.objects.select_related('utilisateur').prefetch_related('lignes__materiel').order_by('-date_demande')
-    
-    # Filtres
-    statut = request.GET.get('statut', '')
-    search = request.GET.get('search', '')
-    if statut:
-        demandes = demandes.filter(statut=statut)
-    if search:
-        demandes = demandes.filter(utilisateur__username__icontains=search)
-    
+
+    demandes = Demande.objects.filter(utilisateur=request.user).order_by('-date_demande')
+
     stats = {
-        'total': Demande.objects.count(),
-        'en_attente': Demande.objects.filter(statut='en_attente').count(),
-        'en_cours': Demande.objects.filter(statut='en_cours').count(),
-        'retard': Demande.objects.filter(statut='retard').count(),
-        'restituees': Demande.objects.filter(statut='restituee').count(),
+        'total': demandes.count(),
+        'en_attente': demandes.filter(statut='en_attente').count(),
+        'approuvees': demandes.filter(statut='approuvee').count(),
+        'en_cours': demandes.filter(statut='en_cours').count(),
+        'restituees': demandes.filter(statut='restituee').count(),
+        'retard': demandes.filter(statut='retard').count(),
     }
-    
-    from gestion.models import Materiel
-    materiels = Materiel.objects.all()
-    
+
+    emprunts_actifs = demandes.filter(statut='en_cours')
+    notifications = Notification.objects.filter(demande__utilisateur=request.user).order_by('-date')[:10]
+
     return render(request, 'espace_enseignant.html', {
         'demandes': demandes,
         'stats': stats,
-        'materiels': materiels,
-        'statut_filter': statut,
-        'search': search,
+        'emprunts_actifs': emprunts_actifs,
+        'notifications': notifications,
+        'today': timezone.now().date(),
     })
 
-@login_required  
+@login_required
 def enseignant_valider_demande(request, demande_id):
     if request.user.role not in ['enseignant', 'admin'] and not request.user.is_superuser:
-        messages.error(request, 'Acces non autorise.')
+        messages.error(request, 'Accès non autorisé.')
         return redirect('accueil')
-    
+
     demande = get_object_or_404(Demande, id=demande_id)
     action = request.POST.get('action')
     motif_refus = request.POST.get('motif_refus', '')
-    
+
     if action == 'approuver' and demande.statut == 'en_attente':
         demande.statut = 'approuvee'
         demande.valide_par = request.user
         demande.date_validation = timezone.now()
         demande.save()
         Notification.objects.create(
-            message=f"Votre demande #{demande.id} a ete approuvee par {request.user.username}.",
+            message=f"Votre demande #{demande.id} a été approuvée par {request.user.username}.",
             type='validation',
             demande=demande
         )
-        messages.success(request, f'Demande #{demande.id} approuvee!')
+        messages.success(request, f'Demande #{demande.id} approuvée !')
+
     elif action == 'refuser' and demande.statut == 'en_attente':
         demande.statut = 'refusee'
         demande.motif_refus = motif_refus
         demande.valide_par = request.user
         demande.save()
         Notification.objects.create(
-            message=f"Votre demande #{demande.id} a ete refusee. Motif: {motif_refus}",
+            message=f"Votre demande #{demande.id} a été refusée. Motif: {motif_refus}",
             type='refus',
             demande=demande
         )
-        messages.warning(request, f'Demande #{demande.id} refusee.')
-    
+        messages.warning(request, f'Demande #{demande.id} refusée.')
+
     return redirect('espace_enseignant')
 
 def espace_etudiant(request):
+    # Vérifier les retards avant tout
+    verifier_retards()
+
     demandes = Demande.objects.filter(utilisateur=request.user).order_by('-date_demande')
 
     # Statistiques
@@ -1012,7 +1053,7 @@ def espace_etudiant(request):
         'retard': demandes.filter(statut='retard').count(),
     }
 
-    # Derni res demandes (5 derni res)
+    # Dernieres demandes (5 dernieres)
     dernieres_demandes = demandes[:5]
 
     # Emprunts actifs (en cours)
@@ -1032,6 +1073,7 @@ def espace_etudiant(request):
         'today': timezone.now().date(),
     }
     return render(request, 'espace_etudiant.html', context)
+
 
 @login_required
 def nouvelle_demande(request):
@@ -1185,14 +1227,20 @@ def detail_demande(request, demande_id):
         'lignes': lignes,
     })
 
+
 def mes_demandes(request):
+    # Vérifier les retards avant tout
+    verifier_retards()
+
     demandes = Demande.objects.filter(utilisateur=request.user).order_by('-date_demande')
     statut_filter = request.GET.get('statut', '')
     search = request.GET.get('search', '')
+
     if statut_filter:
         demandes = demandes.filter(statut=statut_filter)
     if search:
         demandes = demandes.filter(lignes__materiel__nom__icontains=search).distinct()
+
     return render(request, 'mes_demandes.html', {
         'demandes': demandes,
         'statut_filter': statut_filter,
@@ -2107,3 +2155,71 @@ def profil_enseignant(request):
 
     return render(request, 'profil_enseignant.html')
 
+def inscription_enseignant(request):
+    """Inscription pour les enseignants"""
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        password2 = request.POST.get('password2')
+        telephone = request.POST.get('telephone')
+        filiere = request.POST.get('filiere')
+
+        # Validation email universitaire
+        if not re.match(r'^[a-z]+\.[a-z]+[0-9]@univ-thies\.sn$', email):
+            messages.error(request, 'Format d\'email invalide. Utilisez: prenom.nom3@univ-thies.sn')
+            return render(request, 'inscription_enseignant.html')
+
+        # Validation prénom et nom
+        if not first_name or not last_name:
+            messages.error(request, 'Veuillez renseigner votre prénom et votre nom.')
+            return render(request, 'inscription_enseignant.html')
+
+        if password == password2:
+            if not Utilisateur.objects.filter(username=username).exists():
+                if not Utilisateur.objects.filter(email=email).exists():
+                    utilisateur = Utilisateur.objects.create_user(
+                        username=username,
+                        email=email,
+                        password=password,
+                        first_name=first_name,
+                        last_name=last_name,
+                        role='enseignant',
+                        telephone=telephone,
+                        filiere=filiere
+                    )
+                    login(request, utilisateur)
+                    log_action(request, 'inscription_enseignant',
+                               f"Nouvel enseignant inscrit : {first_name} {last_name} ({username}) - {filiere}")
+                    messages.success(request, f'Bienvenue {first_name} {last_name} ! Votre compte enseignant a été créé avec succès.')
+                    return redirect('espace_enseignant')
+                else:
+                    messages.error(request, 'Cet email est déjà utilisé.')
+            else:
+                messages.error(request, 'Ce nom d\'utilisateur existe déjà.')
+        else:
+            messages.error(request, 'Les mots de passe ne correspondent pas.')
+
+    return render(request, 'inscription_enseignant.html')
+
+
+def connexion_enseignant(request):
+    """Connexion pour les enseignants"""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user:
+            if user.role == 'enseignant' or user.is_superuser:
+                login(request, user)
+                log_action(request, 'connexion_enseignant',
+                           f"{user.username} s'est connecté (enseignant)")
+                messages.success(request, f'Bienvenue {user.first_name} {user.last_name} !')
+                return redirect('espace_enseignant')
+            else:
+                messages.error(request, 'Vous n\'avez pas les droits enseignant.')
+        else:
+            messages.error(request, 'Identifiants incorrects.')
+    return render(request, 'connexion_enseignant.html')

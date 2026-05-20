@@ -1,0 +1,161 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Enseignant - UFR Sciences</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+        }
+        .login-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+        .login-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .login-logo i {
+            font-size: 3rem;
+            color: #8e44ad;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 20px;
+        }
+        .login-title {
+            color: white;
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .login-subtitle {
+            color: rgba(255,255,255,0.5);
+            text-align: center;
+            font-size: 0.8rem;
+            margin-bottom: 30px;
+        }
+        .form-control {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 12px;
+            padding: 12px 16px;
+        }
+        .form-control:focus {
+            background: rgba(255,255,255,0.15);
+            border-color: #8e44ad;
+            box-shadow: 0 0 0 3px rgba(142,68,173,0.2);
+            color: white;
+        }
+        .form-control::placeholder {
+            color: rgba(255,255,255,0.4);
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #8e44ad, #6c3483);
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-weight: 600;
+            width: 100%;
+            color: white;
+            transition: all 0.3s;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(142,68,173,0.3);
+        }
+        .alert {
+            background: rgba(231,76,60,0.2);
+            border: 1px solid rgba(231,76,60,0.3);
+            color: #e74c3c;
+            border-radius: 12px;
+        }
+        .divider {
+            border-color: rgba(255,255,255,0.1);
+            margin: 20px 0;
+        }
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .register-link a {
+            color: #8e44ad;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .register-link a:hover {
+            color: #a569bd;
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .back-link a {
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+        .back-link a:hover {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<div class="login-card">
+    <div class="login-logo">
+        <i class="fas fa-chalkboard-teacher"></i>
+    </div>
+    <h3 class="login-title">Espace Enseignant</h3>
+    <p class="login-subtitle">Connectez-vous avec vos identifiants</p>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-dismissible fade show mb-3">
+                {{ message }}
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <input type="text" name="username" class="form-control" placeholder="Nom d'utilisateur" required>
+        </div>
+        <div class="mb-3">
+            <input type="password" name="password" class="form-control" placeholder="Mot de passe" required>
+        </div>
+        <button type="submit" class="btn-login">
+            <i class="fas fa-sign-in-alt me-2"></i> Se connecter
+        </button>
+    </form>
+
+    <hr class="divider">
+    <div class="register-link">
+        Pas encore de compte ? <a href="{% url 'inscription_enseignant' %}">S'inscrire</a>
+    </div>
+    <div class="back-link">
+        <a href="{% url 'accueil' %}">
+            <i class="fas fa-arrow-left me-1"></i> Retour à l'accueil
+        </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

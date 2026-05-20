@@ -3,283 +3,373 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="theme-color" content="#2c3e50">
     <title>Espace Enseignant - UFR Sciences</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
     <style>
-        :root { --primary: #1a6fbf; --accent: #3498db; --success: #27ae60; --warning: #f39c12; --danger: #e74c3c; }
+        :root { --primary: #2c3e50; --accent: #3498db; --success: #27ae60; --warning: #f39c12; --danger: #e74c3c; }
         * { box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #f0f2f5; margin: 0; }
-        h1,h2,h3,h4,h5,h6 { font-family: 'Manrope', sans-serif; }
-
-        /* LAYOUT */
-        .page-layout { display: flex; min-height: 100vh; }
-
-        /* SIDEBAR */
-        .sidebar { width: 240px; min-width: 240px; background: linear-gradient(180deg, #354d68 0%, #2d3f54 100%); box-shadow: 3px 0 12px rgba(0,0,0,0.15); padding: 20px 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; }
-        .sidebar-brand { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
-        .sidebar-brand .name { font-family: Manrope; font-weight: 800; font-size: 0.95rem; color: white; }
-        .sidebar-brand .role { font-size: 0.7rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; }
-        .sidebar-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.4); padding: 0 20px; margin-bottom: 6px; margin-top: 12px; }
-        .sidebar-link { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: rgba(255,255,255,0.75); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: all 0.2s; border-left: 3px solid transparent; }
-        .sidebar-link:hover { background: rgba(255,255,255,0.1); color: white; border-left-color: rgba(255,255,255,0.4); }
-        .sidebar-link.active { background: rgba(255,255,255,0.15); color: white; border-left-color: white; font-weight: 700; }
-        .sidebar-link i { width: 18px; text-align: center; }
-        .sidebar-divider { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 16px; }
-        .sidebar-logout { color: rgba(255,100,100,0.85) !important; margin-top: auto; }
-        .sidebar-logout:hover { background: rgba(231,76,60,0.15) !important; }
-
-        /* MAIN */
-        .main-content { flex: 1; padding: 24px; overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; background: #f0f2f5; margin: 0; padding-bottom: 70px; }
+        h1,h2,h3,h4,h5,h6,.fw-bold { font-family: 'Manrope', sans-serif; }
 
         /* TOPBAR */
-        .page-topbar { background: white; border-radius: 14px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-        .page-title { font-family: Manrope; font-weight: 800; color: #2d3f54; font-size: 1.1rem; margin: 0; }
+        .topbar { background: var(--primary); position: sticky; top: 0; z-index: 1000; height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .topbar-brand { font-family: 'Manrope', sans-serif; font-weight: 800; color: white; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+        .topbar-actions { display: flex; align-items: center; gap: 8px; }
+        .btn-icon { width: 34px; height: 34px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; transition: all 0.2s; font-size: 0.82rem; text-decoration: none; }
+        .btn-icon:hover { background: rgba(255,255,255,0.2); color: white; }
 
-        /* STATS */
-        .stat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
-        .stat-card { border-radius: 14px; padding: 16px; color: white; position: relative; overflow: hidden; }
-        .stat-card .val { font-family: Manrope; font-size: 2rem; font-weight: 800; line-height: 1; }
-        .stat-card .lbl { font-size: 0.7rem; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
-        .stat-card .ico { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 2rem; opacity: 0.2; }
+        /* BOTTOM NAV */
+        .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--primary); z-index: 1000; padding: 6px 0 8px; box-shadow: 0 -2px 10px rgba(0,0,0,0.15); }
+        .bottom-nav a { flex: 1; text-align: center; color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.6rem; display: flex; flex-direction: column; align-items: center; gap: 2px; font-family: 'Inter', sans-serif; }
+        .bottom-nav a i { font-size: 1.1rem; }
+        .bottom-nav a.active { color: white; }
+        .bottom-nav .fab-btn { background: var(--danger); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; margin-top: -18px; box-shadow: 0 4px 12px rgba(231,76,60,0.4); }
+        @media (max-width: 768px) { .bottom-nav { display: flex; } .desktop-only { display: none !important; } }
+
+        /* WELCOME */
+        .welcome-card { background: linear-gradient(135deg, #2c3e50, #3498db); border-radius: 16px; padding: 20px; color: white; margin-bottom: 16px; }
+        .welcome-card h5 { font-family: 'Manrope', sans-serif; font-weight: 800; margin: 0 0 4px; }
+
+        /* STAT CARDS */
+        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+        .stat-card { border-radius: 14px; padding: 14px; position: relative; overflow: hidden; color: white; }
+        .stat-card .val { font-family: 'Manrope', sans-serif; font-size: 1.8rem; font-weight: 800; line-height: 1; }
+        .stat-card .lbl { font-size: 0.68rem; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+        .stat-card .ico { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 1.8rem; opacity: 0.2; }
+
+        /* SECTION */
+        .section-card { background: white; border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 16px; overflow: hidden; }
+        .section-header { padding: 14px 16px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+        .section-title { font-family: 'Manrope', sans-serif; font-weight: 700; color: var(--primary); font-size: 0.88rem; border-left: 3px solid var(--primary); padding-left: 8px; margin: 0; }
+        .section-body { padding: 16px; }
+
+        /* EMPRUNT ITEMS */
+        .emprunt-item { border-left: 4px solid var(--accent); background: #f8f9fa; border-radius: 0 10px 10px 0; padding: 12px 14px; margin-bottom: 10px; }
+        .emprunt-item.retard { border-left-color: var(--danger); background: #fff8f8; }
+        .emprunt-item h6 { font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 0.88rem; margin: 0 0 4px; color: var(--primary); }
+        .emprunt-item small { color: #888; font-size: 0.75rem; }
+
+        /* NOTIF */
+        .notif-item { border-left: 3px solid var(--primary); background: #f8f9fa; border-radius: 0 8px 8px 0; padding: 8px 12px; margin-bottom: 8px; font-size: 0.78rem; }
+        .notif-item small { color: #999; display: block; margin-bottom: 2px; }
+
+        /* ACTION BUTTONS */
+        .btn-action { border-radius: 25px; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 0.82rem; padding: 8px 20px; border: none; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary-custom { background: var(--primary); color: white; }
+        .btn-success-custom { background: var(--success); color: white; }
+        .btn-danger-custom { background: var(--danger); color: white; }
 
         /* TABLE */
-        .table-card { background: white; border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
-        .table-header { padding: 16px 20px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
-        .table-title { font-family: Manrope; font-weight: 700; color: #2d3f54; font-size: 0.9rem; margin: 0; border-left: 3px solid var(--primary); padding-left: 10px; }
-        .data-table { width: 100%; }
-        .data-table thead th { background: #2d3f54; color: white; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; padding: 12px 16px; border: none; }
-        .data-table tbody td { padding: 12px 16px; border-bottom: 1px solid #f5f5f5; font-size: 0.83rem; vertical-align: middle; }
-        .data-table tbody tr:hover { background: #f8f9fa; }
-        .data-table tbody tr:last-child td { border-bottom: none; }
+        .mini-table { width: 100%; font-size: 0.82rem; }
+        .mini-table th { color: #888; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }
+        .mini-table td { padding: 8px; border-bottom: 1px solid #f8f8f8; vertical-align: middle; }
+        .mini-table tr:last-child td { border-bottom: none; }
 
         /* BADGE */
-        .badge-statut { padding: 4px 10px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; }
+        .badge-statut { padding: 3px 8px; border-radius: 12px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; }
 
-        /* FILTRES */
-        .filtres { background: white; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; display: flex; gap: 10px; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.05); flex-wrap: wrap; }
-        .filtres input, .filtres select { border-radius: 20px; border: 1px solid #e0e0e0; padding: 6px 14px; font-size: 0.83rem; }
-        .filtres input:focus, .filtres select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px rgba(26,111,191,0.15); }
+        /* NOTIF BELL */
+        .notif-bell { position: relative; }
+        .notif-badge-dot { position: absolute; top: -3px; right: -3px; background: var(--danger); color: white; border-radius: 50%; width: 15px; height: 15px; font-size: 0.55rem; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .notif-dropdown { position: absolute; right: 0; top: 38px; width: 280px; background: white; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 9999; display: none; border: 1px solid #e8eaed; }
+        .notif-dropdown.open { display: block; }
+        .notif-dropdown-header { padding: 10px 14px; background: var(--primary); color: white; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 700; }
+        .notif-item-dd { padding: 8px 14px; border-bottom: 1px solid #f0f0f0; font-size: 0.75rem; }
+        .notif-item-dd.unread { border-left: 3px solid var(--danger); background: #fff8f8; }
+        .notif-empty-dd { padding: 16px; text-align: center; color: #999; font-size: 0.78rem; }
 
-        @media (max-width: 768px) { .sidebar { display: none; } .stat-grid { grid-template-columns: repeat(2,1fr); } }
-        /* TOPBAR */
-        .topbar { background: linear-gradient(180deg, #354d68 0%, #2d3f54 100%); height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-        .topbar-brand { font-family: Manrope; font-weight: 800; color: white; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
-        .topbar-actions { display: flex; align-items: center; gap: 8px; }
-        .btn-topbar { width: 34px; height: 34px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; font-size: 0.82rem; transition: all 0.2s; }
-        .btn-topbar:hover { background: rgba(255,255,255,0.2); color: white; }
+        /* SIDEBAR */
         .page-layout { display: flex; min-height: calc(100vh - 56px); }
-        .sidebar { top: 56px; height: calc(100vh - 56px); }
-        /* TOPBAR */
-        .topbar { background: linear-gradient(180deg, #354d68 0%, #2d3f54 100%); height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-        .topbar-brand { font-family: Manrope; font-weight: 800; color: white; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
-        .topbar-actions { display: flex; align-items: center; gap: 8px; }
-        .btn-topbar { width: 34px; height: 34px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; font-size: 0.82rem; transition: all 0.2s; }
-        .btn-topbar:hover { background: rgba(255,255,255,0.2); color: white; }
-        .page-layout { display: flex; min-height: calc(100vh - 56px); }
-        .sidebar { top: 56px; height: calc(100vh - 56px); }
+        .sidebar { width: 240px; min-width: 240px; background: linear-gradient(180deg, #354d68 0%, #2d3f54 100%); box-shadow: 3px 0 12px rgba(0,0,0,0.15); padding: 20px 0; position: sticky; top: 56px; height: calc(100vh - 56px); overflow-y: auto; display: flex; flex-direction: column; }
+        .sidebar::-webkit-scrollbar { width: 3px; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        .sidebar-section { padding: 0 12px 16px; }
+        .sidebar-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.45); padding: 0 8px; margin-bottom: 6px; }
+        .sidebar-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; color: rgba(255,255,255,0.75); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: all 0.2s; margin-bottom: 2px; border-left: 3px solid transparent; }
+        .sidebar-link:hover { background: rgba(255,255,255,0.12); color: white; border-left-color: rgba(255,255,255,0.5); }
+        .sidebar-link.active { background: rgba(255,255,255,0.18); color: white; border-left-color: white; font-weight: 700; }
+        .sidebar-link.highlight { background: rgba(255,255,255,0.2); color: white; font-weight: 700; border: 1px solid rgba(255,255,255,0.3); }
+        .sidebar-link.highlight:hover { background: rgba(255,255,255,0.28); }
+        .sidebar-link i { width: 18px; text-align: center; }
+        .sidebar-divider { border: none; border-top: 1px solid rgba(255,255,255,0.12); margin: 8px 12px; }
+        .sidebar-user { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.12); margin-bottom: 12px; }
+        .sidebar-user .name { font-family: Manrope; font-weight: 700; font-size: 0.88rem; color: white; }
+        .sidebar-user .role { font-size: 0.72rem; color: rgba(255,255,255,0.55); }
+        .sidebar-stats-box { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 8px; }
+        .sidebar-stats-box .stat-row { display: flex; justify-content: space-between; font-size: 0.75rem; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .sidebar-stats-box .stat-row:last-child { border-bottom: none; }
+        .sidebar-stats-box .stat-label { color: rgba(255,255,255,0.6); }
+        .sidebar-deconnexion { color: rgba(255,100,100,0.85) !important; }
+        .sidebar-deconnexion:hover { background: rgba(231,76,60,0.2) !important; color: white !important; }
+        .main-content { flex: 1; padding: 20px; overflow-x: hidden; }
+        @media (max-width: 768px) { .sidebar { display: none; } .main-content { padding: 12px; } }
+
+        /* ANIMATIONS */
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        .welcome-card { animation: fadeInUp 0.5s ease forwards; }
+        .stat-grid { animation: fadeInUp 0.5s ease 0.1s forwards; opacity:0; }
+        .section-card { animation: fadeInUp 0.5s ease 0.2s forwards; opacity:0; }
+        .topbar { animation: fadeInUp 0.4s ease forwards; }
+        .stat-card { transition: transform 0.2s ease; }
+        .stat-card:hover { transform: scale(1.04); }
+        .btn-action { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+        .emprunt-item { transition: transform 0.2s ease; }
+        .emprunt-item:hover { transform: translateX(4px); }
     </style>
+<link rel="stylesheet" href="{% static 'css/animations.css' %}">
 </head>
 <body>
+
 <!-- TOPBAR -->
 <div class="topbar">
-    <div class="topbar-brand"><i class="fas fa-graduation-cap me-2"></i> UFR Sciences de l'Ingenieur</div>
-    <div class="topbar-actions">
-        <span style="color:rgba(255,255,255,0.7);font-size:0.82rem"><i class="fas fa-user me-1"></i>{{ user.username }}</span>
-        <a href="{% url 'profil_enseignant' %}" class="btn-topbar" title="Mon profil"><i class="fas fa-user-edit"></i></a>
-        <a href="{% url 'catalogue' %}" class="btn-topbar" title="Catalogue"><i class="fas fa-box"></i></a>
-        <a href="{% url 'deconnexion' %}" class="btn-topbar" style="border-color:rgba(231,76,60,0.4)" title="Deconnexion"><i class="fas fa-sign-out-alt"></i></a>
+    <div class="topbar-brand"><i class="fas fa-graduation-cap"></i> UFR Sciences</div>
+    <div class="topbar-actions desktop-only">
+        <span class="text-white small me-1"><i class="fas fa-user"></i> {{ user.username }}</span>
+        <a href="{% url 'nouvelle_demande' %}" class="btn-icon" title="Nouvelle demande"><i class="fas fa-plus"></i></a>
+        <a href="{% url 'catalogue' %}" class="btn-icon" title="Catalogue"><i class="fas fa-box"></i></a>
+        <div class="notif-bell" onclick="toggleNotif()">
+            <div class="btn-icon"><i class="fas fa-bell"></i><span class="notif-badge-dot" id="notif-badge" style="display:none">0</span></div>
+            <div class="notif-dropdown" id="notifDropdown">
+                <div class="notif-dropdown-header"><span><i class="fas fa-bell"></i> Notifications</span><span onclick="marquerLues(event)" style="cursor:pointer;opacity:0.8;font-size:0.68rem">Tout lire</span></div>
+                <div id="notif-list"><div class="notif-empty-dd">Chargement...</div></div>
+            </div>
+        </div>
+        <a href="{% url 'deconnexion' %}" class="btn-icon text-danger" style="border-color:rgba(231,76,60,0.3)" title="Deconnexion"><i class="fas fa-sign-out-alt"></i></a>
     </div>
 </div>
-<div class="page-layout">
 
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+    <a href="{% url 'espace_enseignant' %}" class="active"><i class="fas fa-home"></i><span>Accueil</span></a>
+    <a href="{% url 'catalogue' %}"><i class="fas fa-box"></i><span>Catalogue</span></a>
+    <a href="{% url 'nouvelle_demande' %}">
+        <div class="fab-btn"><i class="fas fa-plus" style="color:white;font-size:1.2rem"></i></div>
+        <span>Demander</span>
+    </a>
+    <a href="{% url 'mes_demandes' %}"><i class="fas fa-history"></i><span>Historique</span></a>
+    <a href="{% url 'chatbot' %}"><i class="fas fa-robot"></i><span>IA</span></a>
+</div>
+
+<div class="page-layout">
 <!-- SIDEBAR -->
 <div class="sidebar">
-    <div class="sidebar-brand">
-        <div class="name"><i class="fas fa-chalkboard-teacher me-2"></i>{{ user.username }}</div>
-        <div class="role">Enseignant</div>
+    <div class="sidebar-user">
+        <div class="name"><i class="fas fa-user-circle me-1"></i> {{ user.username }}</div>
+        <div class="role"><i class="fas fa-chalkboard-teacher me-1"></i> Enseignant</div>
     </div>
-    <div class="sidebar-label">Navigation</div>
-    <a href="{% url 'espace_enseignant' %}" class="sidebar-link active"><i class="fas fa-home"></i> Tableau de bord</a>
-    <a href="{% url 'catalogue' %}" class="sidebar-link"><i class="fas fa-box"></i> Catalogue</a>
+    <div class="sidebar-section">
+        <div class="sidebar-label">Navigation</div>
+        <a href="{% url 'espace_enseignant' %}" class="sidebar-link active">
+            <i class="fas fa-home"></i> Mon espace
+        </a>
+        <a href="{% url 'catalogue' %}" class="sidebar-link">
+            <i class="fas fa-box"></i> Catalogue
+        </a>
+        <a href="{% url 'mes_demandes' %}" class="sidebar-link">
+            <i class="fas fa-history"></i> Mes demandes
+        </a>
+        <a href="{% url 'profil_enseignant' %}" class="sidebar-link">
+            <i class="fas fa-user-edit"></i> Mon profil
+        </a>
+    </div>
     <hr class="sidebar-divider">
-    <div class="sidebar-label">Gestion</div>
-    <a href="{% url 'espace_enseignant' %}?statut=en_attente" class="sidebar-link"><i class="fas fa-clock"></i> Demandes en attente</a>
-    <a href="{% url 'espace_enseignant' %}?statut=en_cours" class="sidebar-link"><i class="fas fa-hand-peace"></i> En cours</a>
-    <a href="{% url 'espace_enseignant' %}?statut=retard" class="sidebar-link"><i class="fas fa-exclamation-triangle"></i> Retards</a>
+    <div class="sidebar-section">
+        <div class="sidebar-label">Actions rapides</div>
+        <a href="{% url 'nouvelle_demande' %}" class="sidebar-link highlight">
+            <i class="fas fa-plus-circle"></i> Nouvelle demande
+        </a>
+        <a href="{% url 'chatbot' %}" class="sidebar-link" style="background:rgba(155,89,182,0.25);color:#d7bde2">
+            <i class="fas fa-robot"></i> Assistant IA
+        </a>
+    </div>
     <hr class="sidebar-divider">
-    <a href="{% url 'deconnexion' %}" class="sidebar-link sidebar-logout"><i class="fas fa-sign-out-alt"></i> Deconnexion</a>
+    <div class="sidebar-section">
+        <div class="sidebar-label">Statistiques</div>
+        <div class="sidebar-stats-box">
+            <div class="stat-row">
+                <span class="stat-label">En attente</span>
+                <span style="font-weight:700;color:#f39c12">{{ stats.en_attente|default:"0" }}</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">En cours</span>
+                <span style="font-weight:700;color:#5dade2">{{ stats.en_cours|default:"0" }}</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Retards</span>
+                <span style="font-weight:700;color:#e74c3c">{{ stats.retard|default:"0" }}</span>
+            </div>
+        </div>
+    </div>
+    <div style="margin-top:auto;padding:16px 20px;border-top:1px solid #f0f0f0">
+        <a href="{% url 'deconnexion' %}" class="sidebar-link sidebar-deconnexion">
+            <i class="fas fa-sign-out-alt"></i> Deconnexion
+        </a>
+    </div>
 </div>
 
-<!-- MAIN -->
+<!-- MAIN CONTENT -->
 <div class="main-content">
-    <!-- TOPBAR -->
-    <div class="page-topbar">
-        <h5 class="page-title"><i class="fas fa-chalkboard-teacher me-2"></i>Espace Enseignant</h5>
-        <span class="text-muted small">UFR Sciences de l'Ingenieur</span>
-    </div>
-
-    {% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" style="border-radius:12px;font-size:0.83rem">
+<div class="container-fluid px-0">
+    <!-- MESSAGES -->
+    {% if messages %}{% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show py-2 small" style="border-radius:12px">
         {{ message }}<button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
     </div>
-    {% endfor %}
-    {% endif %}
+    {% endfor %}{% endif %}
+
+    <!-- WELCOME -->
+    <div class="welcome-card">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h5><i class="fas fa-smile-wink me-2"></i>Bonjour {{ user.first_name|default:user.username }} !</h5>
+                <small style="opacity:0.8"><i class="fas fa-chalkboard-teacher me-1"></i>Enseignant — {{ user.filiere|default:"Département non renseigné" }}</small>
+            </div>
+            <a href="{% url 'profil_enseignant' %}" class="btn-icon" style="border-color:rgba(255,255,255,0.3)"><i class="fas fa-edit"></i></a>
+        </div>
+    </div>
 
     <!-- STATS -->
     <div class="stat-grid">
-        <div class="stat-card anim-up" style="background:linear-gradient(135deg,#2d3f54,#354d68)">
+        <div class="stat-card" style="background:linear-gradient(135deg,#2c3e50,#4a6fa5)">
             <i class="fas fa-clipboard-list ico"></i>
-            <div class="val">{{ stats.total }}</div>
-            <div class="lbl">Total demandes</div>
+            <div class="val">{{ stats.total|default:"0" }}</div>
+            <div class="lbl">Total</div>
         </div>
-        <div class="stat-card anim-up delay-1" style="background:linear-gradient(135deg,#f39c12,#e67e22)">
+        <div class="stat-card" style="background:linear-gradient(135deg,#f39c12,#e67e22)">
             <i class="fas fa-clock ico"></i>
-            <div class="val">{{ stats.en_attente }}</div>
+            <div class="val">{{ stats.en_attente|default:"0" }}</div>
             <div class="lbl">En attente</div>
         </div>
-        <div class="stat-card anim-up delay-2" style="background:linear-gradient(135deg,#3498db,#2980b9)">
+        <div class="stat-card" style="background:linear-gradient(135deg,#27ae60,#2ecc71)">
+            <i class="fas fa-check ico"></i>
+            <div class="val">{{ stats.approuvees|default:"0" }}</div>
+            <div class="lbl">Approuvees</div>
+        </div>
+        <div class="stat-card" style="background:linear-gradient(135deg,#3498db,#2980b9)">
             <i class="fas fa-hand-peace ico"></i>
-            <div class="val">{{ stats.en_cours }}</div>
+            <div class="val">{{ stats.en_cours|default:"0" }}</div>
             <div class="lbl">En cours</div>
         </div>
-        <div class="stat-card anim-up delay-3" style="background:linear-gradient(135deg,#e74c3c,#c0392b)">
-            <i class="fas fa-exclamation-triangle ico"></i>
-            <div class="val">{{ stats.retard }}</div>
+        <div class="stat-card" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d)">
+            <i class="fas fa-undo ico"></i>
+            <div class="val">{{ stats.restituees|default:"0" }}</div>
+            <div class="lbl">Rendus</div>
+        </div>
+        <div class="stat-card" style="background:linear-gradient(135deg,#e74c3c,#c0392b)">
+            <i class="fas fa-exclamation ico"></i>
+            <div class="val">{{ stats.retard|default:"0" }}</div>
             <div class="lbl">Retards</div>
         </div>
-        <div class="stat-card anim-up delay-4" style="background:linear-gradient(135deg,#27ae60,#1e8449)">
-            <i class="fas fa-check ico"></i>
-            <div class="val">{{ stats.restituees }}</div>
-            <div class="lbl">Restituees</div>
-        </div>
     </div>
 
-    <!-- FILTRES -->
-    <form method="get" class="filtres">
-        <input type="text" name="search" value="{{ search }}" placeholder="Rechercher un etudiant...">
-        <select name="statut" onchange="this.form.submit()">
-            <option value="">Tous les statuts</option>
-            <option value="en_attente" {% if statut_filter == 'en_attente' %}selected{% endif %}>En attente</option>
-            <option value="approuvee" {% if statut_filter == 'approuvee' %}selected{% endif %}>Approuvee</option>
-            <option value="refusee" {% if statut_filter == 'refusee' %}selected{% endif %}>Refusee</option>
-            <option value="en_cours" {% if statut_filter == 'en_cours' %}selected{% endif %}>En cours</option>
-            <option value="restituee" {% if statut_filter == 'restituee' %}selected{% endif %}>Restituee</option>
-            <option value="retard" {% if statut_filter == 'retard' %}selected{% endif %}>Retard</option>
-        </select>
-        <button type="submit" class="btn btn-sm" style="background:#2d3f54;color:white;border-radius:20px;padding:6px 16px">
-            <i class="fas fa-search"></i>
-        </button>
-        {% if statut_filter or search %}
-        <a href="{% url 'espace_enseignant' %}" class="btn btn-sm btn-outline-secondary" style="border-radius:20px">
-            <i class="fas fa-times"></i> Effacer
-        </a>
-        {% endif %}
-    </form>
-
-    <!-- TABLE DEMANDES -->
-    <div class="table-card">
-        <div class="table-header">
-            <h6 class="table-title"><i class="fas fa-list me-1"></i> Liste des demandes</h6>
-            <span class="badge" style="background:#2d3f54;border-radius:12px">{{ demandes.count }}</span>
+    <!-- EMPRUNTS EN COURS -->
+    {% if emprunts_actifs %}
+    <div class="section-card">
+        <div class="section-header">
+            <h6 class="section-title"><i class="fas fa-hand-peace me-1"></i> Emprunts en cours</h6>
+            <span class="badge" style="background:var(--accent);border-radius:12px">{{ emprunts_actifs.count }}</span>
         </div>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Etudiant</th>
-                    <th>Materiel</th>
-                    <th>Periode</th>
-                    <th>Statut</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for demande in demandes %}
-                <tr>
-                    <td class="fw-bold" style="color:#2d3f54">{{ demande.id }}</td>
-                    <td>
-                        <div style="font-weight:600">{{ demande.utilisateur.username }}</div>
-                        <small class="text-muted">{{ demande.utilisateur.filiere|default:"" }} {{ demande.utilisateur.niveau|default:"" }}</small>
-                    </td>
-                    <td>{% for l in demande.lignes.all %}{{ l.materiel.nom|truncatechars:25 }}{% endfor %}</td>
-                    <td class="text-muted small">{{ demande.date_debut|date:"d/m/Y" }} ? {{ demande.date_fin|date:"d/m/Y" }}</td>
-                    <td>
-                        <span class="badge-statut
-                            {% if demande.statut == 'en_attente' %}bg-warning text-dark
-                            {% elif demande.statut == 'approuvee' %}bg-success text-white
-                            {% elif demande.statut == 'refusee' %}bg-danger text-white
-                            {% elif demande.statut == 'en_cours' %}bg-info text-white
-                            {% elif demande.statut == 'retard' %}bg-danger text-white
-                            {% else %}bg-secondary text-white{% endif %}">
-                            {{ demande.get_statut_display }}
-                        </span>
-                    </td>
-                    <td>
-                        {% if demande.statut == 'en_attente' %}
-                        <div class="d-flex gap-1">
-                            <form method="post" action="{% url 'enseignant_valider_demande' demande.id %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="approuver">
-                                <button type="submit" class="btn btn-sm btn-success" style="border-radius:20px;font-size:0.72rem;padding:3px 10px">
-                                    <i class="fas fa-check"></i> Approuver
-                                </button>
-                            </form>
-                            <button class="btn btn-sm btn-danger" style="border-radius:20px;font-size:0.72rem;padding:3px 10px"
-                                data-bs-toggle="modal" data-bs-target="#refusModal{{ demande.id }}">
-                                <i class="fas fa-times"></i> Refuser
-                            </button>
-                        </div>
-                        {% else %}
-                        <span class="text-muted small">?</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="6" class="text-center py-4 text-muted">Aucune demande</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-</div>
-
-<!-- MODALS REFUS -->
-{% for demande in demandes %}
-{% if demande.statut == 'en_attente' %}
-<div class="modal fade" id="refusModal{{ demande.id }}" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius:16px;overflow:hidden">
-            <div class="modal-header" style="background:#e74c3c;color:white">
-                <h6 class="modal-title" style="font-family:Manrope;font-weight:700">
-                    <i class="fas fa-times-circle me-2"></i>Refuser la demande {{ demande.id }}
-                </h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="section-body">
+            {% for emprunt in emprunts_actifs %}
+            <div class="emprunt-item {% if emprunt.date_fin < today %}retard{% endif %}">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6>{% for l in emprunt.lignes.all %}{{ l.materiel.nom }}{% endfor %}</h6>
+                        <small>
+                            {% if emprunt.date_fin < today %}
+                                <span style="color:var(--danger)"><i class="fas fa-exclamation-triangle"></i> En retard — retour le {{ emprunt.date_fin|date:"d/m/Y" }}</span>
+                            {% else %}
+                                <i class="fas fa-calendar"></i> Retour le {{ emprunt.date_fin|date:"d/m/Y" }}
+                            {% endif %}
+                        </small>
+                    </div>
+                    <span class="badge" style="background:var(--accent);border-radius:12px;font-size:0.65rem">En cours</span>
+                </div>
+                <div class="mt-2">
+                    <small style="color:#888"><i class="fas fa-info-circle"></i> Presentez-vous au laboratoire pour restituer le materiel.</small>
+                </div>
             </div>
-            <form method="post" action="{% url 'enseignant_valider_demande' demande.id %}">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="refuser">
-                <div class="modal-body">
-                    <label class="form-label fw-bold small">Motif du refus *</label>
-                    <textarea name="motif_refus" class="form-control" rows="3" required
-                        placeholder="Ex: Materiel non disponible, dates incorrectes..."
-                        style="border-radius:10px;font-size:0.85rem"></textarea>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal" style="border-radius:20px">Annuler</button>
-                    <button type="submit" class="btn btn-danger btn-sm px-4" style="border-radius:20px;font-weight:600">Confirmer le refus</button>
-                </div>
-            </form>
+            {% endfor %}
         </div>
     </div>
-</div>
-{% endif %}
-{% endfor %}
+    {% endif %}
 
+    <!-- DERNIERES DEMANDES -->
+    <div class="section-card">
+        <div class="section-header">
+            <h6 class="section-title"><i class="fas fa-history me-1"></i> Dernieres demandes</h6>
+            <a href="{% url 'mes_demandes' %}" style="font-size:0.75rem;color:var(--accent);text-decoration:none;font-weight:600">Voir tout →</a>
+        </div>
+        <div class="section-body p-0">
+            <table class="mini-table">
+                <thead><tr><th>Materiel</th><th>Periode</th><th>Statut</th></tr></thead>
+                <tbody>
+                    {% for demande in demandes|slice:":5" %}
+                    <tr>
+                        <td style="padding:8px;font-weight:600">{% for l in demande.lignes.all %}{{ l.materiel.nom|truncatechars:20 }}{% endfor %}</td>
+                        <td style="padding:8px;color:#888;font-size:0.75rem">{{ demande.date_debut|date:"d/m" }} → {{ demande.date_fin|date:"d/m/Y" }}</td>
+                        <td style="padding:8px">
+                            <span class="badge-statut {% if demande.statut == 'en_attente' %}bg-warning text-dark{% elif demande.statut == 'approuvee' %}bg-success text-white{% elif demande.statut == 'refusee' %}bg-danger text-white{% elif demande.statut == 'en_cours' %}bg-info text-white{% else %}bg-secondary text-white{% endif %}">
+                                {{ demande.get_statut_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="text-center text-muted py-3" style="padding:16px">Aucune demande</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    {% if notifications %}
+    <div class="section-card">
+        <div class="section-header">
+            <h6 class="section-title"><i class="fas fa-bell me-1"></i> Notifications</h6>
+            <span class="badge" style="background:var(--danger);border-radius:12px">{{ notifications|length }}</span>
+        </div>
+        <div class="section-body" style="max-height:200px;overflow-y:auto">
+            {% for notif in notifications %}
+            <div class="notif-item">
+                <small>{{ notif.date|date:"d/m H:i" }}</small>
+                {{ notif.message|truncatechars:90 }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+</div>
+</div>
+
+<script>
+function getCookie(name) { let v = null; document.cookie.split(';').forEach(c => { c = c.trim(); if (c.startsWith(name + '=')) v = decodeURIComponent(c.substring(name.length + 1)); }); return v; }
+async function fetchNotifications() {
+    try {
+        const r = await fetch('/notifications/count/');
+        const data = await r.json();
+        const badge = document.getElementById('notif-badge');
+        const list = document.getElementById('notif-list');
+        if (data.count > 0) { badge.style.display = 'flex'; badge.textContent = data.count > 9 ? '9+' : data.count; } else { badge.style.display = 'none'; }
+        if (!list) return;
+        if (data.notifications.length === 0) { list.innerHTML = '<div class="notif-empty-dd">Aucune notification</div>'; }
+        else { list.innerHTML = data.notifications.map(n => '<div class="notif-item-dd ' + (!n.lu ? 'unread' : '') + '"><div style="font-size:0.68rem;color:#999">' + n.date + '</div><div>' + n.message.substring(0,80) + '</div></div>').join(''); }
+    } catch(e) {}
+}
+function toggleNotif() { const dd = document.getElementById('notifDropdown'); if(dd){ dd.classList.toggle('open'); if (dd.classList.contains('open')) fetchNotifications(); } }
+async function marquerLues(e) { e.stopPropagation(); await fetch('/notifications/lues/', { method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken') } }); document.getElementById('notif-badge').style.display = 'none'; fetchNotifications(); }
+document.addEventListener('click', function(e) { const bell = document.querySelector('.notif-bell'); if (bell && !bell.contains(e.target)) { const dd = document.getElementById('notifDropdown'); if(dd) dd.classList.remove('open'); } });
+fetchNotifications();
+setInterval(fetchNotifications, 30000);
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{% static 'js/animations.js' %}"></script>
 </body>
