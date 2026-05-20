@@ -66,14 +66,17 @@ def verifier_retards():
 # ==================== PAGE D'ACCUEIL ====================
 
 def accueil(request):
+    total_types = Materiel.objects.count()
+    quantite_totale = sum(m.quantite_totale for m in Materiel.objects.all())
+    quantite_disponible = sum(m.quantite_disponible for m in Materiel.objects.all())
+
     context = {
-        'total_materiels': Materiel.objects.count(),
-        'materiels_disponibles': Materiel.objects.filter(etat='disponible').count(),
+        'total_types': total_types,
+        'quantite_totale': quantite_totale,
+        'quantite_disponible': quantite_disponible,
         'total_utilisateurs': Utilisateur.objects.count(),
-        'total_demandes': Demande.objects.count(),
     }
     return render(request, 'accueil.html', context)
-
 
 # ==================== PAGE D'ACCUEIL / CATALOGUE ====================
 
@@ -187,6 +190,11 @@ def dashboard(request):
     materiels_maintenance = Materiel.objects.filter(etat="maintenance").count()
     taux_utilisation = round((materiels_empruntes / total_materiels * 100), 1) if total_materiels > 0 else 0
 
+    # ========== NOUVEAU : STATISTIQUES DE QUANTITE ==========
+    quantite_totale = sum(m.quantite_totale for m in Materiel.objects.all())
+    quantite_disponible = sum(m.quantite_disponible for m in Materiel.objects.all())
+    quantite_empruntee = quantite_totale - quantite_disponible
+
     # Stats demandes
     demandes_encours = Demande.objects.filter(statut="en_cours").count()
     demandes_retard = Demande.objects.filter(statut="retard").count()
@@ -291,6 +299,10 @@ def dashboard(request):
         "materiels_empruntes": materiels_empruntes,
         "materiels_maintenance": materiels_maintenance,
         "taux_utilisation": taux_utilisation,
+        # NOUVELLES VARIABLES QUANTITE
+        "quantite_totale": quantite_totale,
+        "quantite_disponible": quantite_disponible,
+        "quantite_empruntee": quantite_empruntee,
         "demandes_encours": demandes_encours,
         "demandes_retard": demandes_retard,
         "demandes_en_attente": demandes_en_attente,
@@ -326,7 +338,6 @@ def dashboard(request):
         "statuts_data": json.dumps(statuts_data),
     }
     return render(request, "dashboard.html", context)
-
 
 # ==================== GESTION DES DEMANDES ====================
 

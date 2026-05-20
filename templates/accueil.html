@@ -169,13 +169,18 @@
             <!-- Stats temps reel -->
             <div class="hero-stats anim-fade-up delay-5">
                 <div class="stat-item">
-                    <div class="num stat-num" id="count-materiels">{{ total_materiels }}</div>
-                    <div class="lbl">Materiels</div>
+                    <div class="num stat-num" id="count-types">{{ total_types }}</div>
+                    <div class="lbl">Types</div>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-item">
-                    <div class="num stat-num" id="count-dispo">{{ materiels_disponibles }}</div>
-                    <div class="lbl">Disponibles</div>
+                    <div class="num stat-num" id="count-quantite">{{ quantite_totale }}</div>
+                    <div class="lbl">Quantité totale</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="num stat-num" id="count-dispo">{{ quantite_disponible }}</div>
+                    <div class="lbl">Disponible</div>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-item">
@@ -183,10 +188,6 @@
                     <div class="lbl">Utilisateurs</div>
                 </div>
                 <div class="stat-divider"></div>
-                <div class="stat-item">
-                    <div class="num stat-num" id="count-demandes">{{ total_demandes }}</div>
-                    <div class="lbl">Demandes</div>
-                </div>
             </div>
         </div>
     </div>
@@ -226,7 +227,7 @@
                 </div>
             </div>
 
-            <!-- Carte Enseignant (NOUVEAU) -->
+            <!-- Carte Enseignant -->
             <div class="col-md-4">
                 <div class="access-card">
                     <div class="card-header-custom" style="background:linear-gradient(135deg,#8e44ad,#6c3483)">
@@ -391,8 +392,9 @@ const revealObserver = new IntersectionObserver((entries) => {
 document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
 window.addEventListener('load', () => {
-    animateCounter(document.getElementById('count-materiels'), {{ total_materiels }});
-    animateCounter(document.getElementById('count-dispo'), {{ materiels_disponibles }});
+    animateCounter(document.getElementById('count-types'), {{ total_types }});
+    animateCounter(document.getElementById('count-quantite'), {{ quantite_totale }});
+    animateCounter(document.getElementById('count-dispo'), {{ quantite_disponible }});
     animateCounter(document.getElementById('count-users'), {{ total_utilisateurs }});
     animateCounter(document.getElementById('count-demandes'), {{ total_demandes }});
 });
