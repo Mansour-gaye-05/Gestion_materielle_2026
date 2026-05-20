@@ -153,7 +153,7 @@
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
-    <a href="{% url 'espace_etudiant' %}" class="active"><i class="fas fa-home"></i><span>Accueil</span></a>
+    <a href="{% if user.role == 'enseignant' %}{% url 'espace_enseignant' %}{% elif user.role == 'technicien' %}{% url 'espace_technicien' %}{% else %}{% url 'espace_etudiant' %}{% endif %}"  class="active"><i class="fas fa-home"></i><span>Accueil</span></a>
     <a href="{% url 'catalogue' %}"><i class="fas fa-box"></i><span>Catalogue</span></a>
     <a href="{% url 'nouvelle_demande' %}">
         <div class="fab-btn"><i class="fas fa-plus" style="color:white;font-size:1.2rem"></i></div>
@@ -172,7 +172,7 @@
     </div>
     <div class="sidebar-section">
         <div class="sidebar-label">Navigation</div>
-        <a href="{% url 'espace_etudiant' %}" class="sidebar-link active">
+        <a href="{% if user.role == 'enseignant' %}{% url 'espace_enseignant' %}{% elif user.role == 'technicien' %}{% url 'espace_technicien' %}{% else %}{% url 'espace_etudiant' %}{% endif %}" class="sidebar-link active">
             <i class="fas fa-home"></i> Mon espace
         </a>
         <a href="{% url 'catalogue' %}" class="sidebar-link">

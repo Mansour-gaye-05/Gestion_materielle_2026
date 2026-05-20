@@ -46,7 +46,7 @@
             {% if user.role == 'admin' or user.is_superuser %}
                 <a href="{% url 'dashboard' %}" class="btn btn-outline-light btn-sm"><i class="fas fa-chart-line"></i> Dashboard</a>
             {% endif %}
-            <a href="{% url 'espace_etudiant' %}" class="btn btn-outline-light btn-sm"><i class="fas fa-user-graduate"></i> Mon espace</a>
+            <a href="{% if user.role == 'enseignant' %}{% url 'espace_enseignant' %}{% elif user.role == 'technicien' %}{% url 'espace_technicien' %}{% else %}{% url 'espace_etudiant' %}{% endif %}"  class="btn btn-outline-light btn-sm"><i class="fas fa-user-graduate"></i> Mon espace</a>
             <a href="{% url 'deconnexion' %}" class="btn btn-outline-light btn-sm"><i class="fas fa-sign-out-alt"></i></a>
         {% else %}
             <a href="{% url 'connexion' %}" class="btn btn-outline-light btn-sm"><i class="fas fa-sign-in-alt"></i> Connexion</a>

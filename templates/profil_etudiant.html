@@ -58,7 +58,7 @@
 <!-- TOPBAR -->
 <div class="topbar">
     <div class="topbar-brand"><i class="fas fa-user-circle"></i> Mon profil</div>
-    <a href="{% url 'espace_etudiant' %}" class="btn-icon" title="Retour"><i class="fas fa-arrow-left"></i></a>
+    <a href="{% if user.role == 'enseignant' %}{% url 'espace_enseignant' %}{% elif user.role == 'technicien' %}{% url 'espace_technicien' %}{% else %}{% url 'espace_etudiant' %}{% endif %}"  class="btn-icon" title="Retour"><i class="fas fa-arrow-left"></i></a>
 </div>
 
 <div class="container mt-4" style="max-width:600px">

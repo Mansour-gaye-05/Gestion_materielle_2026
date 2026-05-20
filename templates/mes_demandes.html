@@ -95,14 +95,14 @@
     <div class="topbar-brand"><i class="fas fa-history me-1"></i> Mes demandes</div>
     <div class="d-flex gap-2">
         <a href="{% url 'nouvelle_demande' %}" class="btn-icon" title="Nouvelle demande"><i class="fas fa-plus"></i></a>
-        <a href="{% url 'espace_etudiant' %}" class="btn-icon" title="Mon espace"><i class="fas fa-home"></i></a>
+        <a href="{% if user.role == 'enseignant' %}{% url 'espace_enseignant' %}{% elif user.role == 'technicien' %}{% url 'espace_technicien' %}{% else %}{% url 'espace_etudiant' %}{% endif %}"  class="btn-icon" title="Mon espace"><i class="fas fa-home"></i></a>
         <a href="{% url 'deconnexion' %}" class="btn-icon" style="border-color:rgba(231,76,60,0.3)" title="Deconnexion"><i class="fas fa-sign-out-alt"></i></a>
     </div>
 </div>
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
-    <a href="{% url 'espace_etudiant' %}"><i class="fas fa-home"></i><span>Accueil</span></a>
+    <a href="{% if user.role == 'enseignant' %}{% url 'espace_enseignant' %}{% elif user.role == 'technicien' %}{% url 'espace_technicien' %}{% else %}{% url 'espace_etudiant' %}{% endif %}" ><i class="fas fa-home"></i><span>Accueil</span></a>
     <a href="{% url 'catalogue' %}"><i class="fas fa-box"></i><span>Catalogue</span></a>
     <a href="{% url 'nouvelle_demande' %}">
         <div class="fab-btn"><i class="fas fa-plus" style="color:white;font-size:1.2rem"></i></div>

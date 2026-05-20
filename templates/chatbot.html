@@ -61,7 +61,7 @@
         <div class="d-flex align-items-center gap-2">
             <span class="text-white small"><i class="fas fa-user"></i> {{ user.username }}</span>
             <a href="{% url 'catalogue' %}" class="btn btn-outline-light btn-sm">Catalogue</a>
-            <a href="{% url 'espace_etudiant' %}" class="btn btn-outline-light btn-sm">Mon espace</a>
+            <a href="{% if user.role == 'enseignant' %}{% url 'espace_enseignant' %}{% elif user.role == 'technicien' %}{% url 'espace_technicien' %}{% else %}{% url 'espace_etudiant' %}{% endif %}"  class="btn btn-outline-light btn-sm">Mon espace</a>
         </div>
     </div>
 </nav>

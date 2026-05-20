@@ -786,6 +786,10 @@ def connexion(request):
             log_action(request, 'connexion', f"{user.username} s'est connecte depuis {request.META.get('REMOTE_ADDR', 'IP inconnue')}")
             if user.role == 'admin' or user.is_superuser:
                 return redirect('dashboard')
+            elif user.role == 'enseignant':
+                return redirect('espace_enseignant')
+            elif user.role == 'technicien':
+                return redirect('espace_technicien')
             else:
                 return redirect('espace_etudiant')
         else:
@@ -858,6 +862,136 @@ def inscription(request):
 
 
 @login_required
+
+@login_required
+
+@login_required
+
+@login_required
+def profil_enseignant(request):
+    if request.user.role not in ['enseignant', 'admin']:
+        return redirect('accueil')
+    if request.method == 'POST':
+        user = request.user
+        user.first_name = request.POST.get('first_name', '')
+        user.last_name = request.POST.get('last_name', '')
+        user.email = request.POST.get('email', '')
+        user.telephone = request.POST.get('telephone', '')
+        user.filiere = request.POST.get('filiere', '')
+        new_password = request.POST.get('new_password', '')
+        if new_password:
+            user.set_password(new_password)
+            messages.success(request, 'Mot de passe mis a jour.')
+        user.save()
+        messages.success(request, 'Profil mis a jour avec succes.')
+        return redirect('profil_enseignant')
+    return render(request, 'profil_enseignant.html')
+
+@login_required
+def profil_technicien(request):
+    if request.user.role not in ['technicien', 'admin']:
+        return redirect('accueil')
+    if request.method == 'POST':
+        user = request.user
+        user.first_name = request.POST.get('first_name', '')
+        user.last_name = request.POST.get('last_name', '')
+        user.email = request.POST.get('email', '')
+        user.telephone = request.POST.get('telephone', '')
+        new_password = request.POST.get('new_password', '')
+        if new_password:
+            user.set_password(new_password)
+            messages.success(request, 'Mot de passe mis a jour.')
+        user.save()
+        messages.success(request, 'Profil mis a jour avec succes.')
+        return redirect('profil_technicien')
+    return render(request, 'profil_technicien.html')
+
+def espace_technicien(request):
+    if request.user.role not in ['technicien', 'admin'] and not request.user.is_superuser:
+        messages.error(request, 'Acces non autorise.')
+        return redirect('accueil')
+    from gestion.models import Maintenance, Materiel
+    maintenances = Maintenance.objects.select_related('materiel').order_by('-date_signalement')
+    stats = {
+        'signalees': maintenances.filter(statut='signale').count(),
+        'en_cours': maintenances.filter(statut='en_cours').count(),
+        'resolues': maintenances.filter(statut='resolu').count(),
+        'total': maintenances.count(),
+    }
+    return render(request, 'espace_technicien.html', {
+        'maintenances': maintenances,
+        'stats': stats,
+    })
+
+def espace_enseignant(request):
+    if request.user.role not in ['enseignant', 'admin'] and not request.user.is_superuser:
+        messages.error(request, 'Acces non autorise.')
+        return redirect('accueil')
+    
+    demandes = Demande.objects.select_related('utilisateur').prefetch_related('lignes__materiel').order_by('-date_demande')
+    
+    # Filtres
+    statut = request.GET.get('statut', '')
+    search = request.GET.get('search', '')
+    if statut:
+        demandes = demandes.filter(statut=statut)
+    if search:
+        demandes = demandes.filter(utilisateur__username__icontains=search)
+    
+    stats = {
+        'total': Demande.objects.count(),
+        'en_attente': Demande.objects.filter(statut='en_attente').count(),
+        'en_cours': Demande.objects.filter(statut='en_cours').count(),
+        'retard': Demande.objects.filter(statut='retard').count(),
+        'restituees': Demande.objects.filter(statut='restituee').count(),
+    }
+    
+    from gestion.models import Materiel
+    materiels = Materiel.objects.all()
+    
+    return render(request, 'espace_enseignant.html', {
+        'demandes': demandes,
+        'stats': stats,
+        'materiels': materiels,
+        'statut_filter': statut,
+        'search': search,
+    })
+
+@login_required  
+def enseignant_valider_demande(request, demande_id):
+    if request.user.role not in ['enseignant', 'admin'] and not request.user.is_superuser:
+        messages.error(request, 'Acces non autorise.')
+        return redirect('accueil')
+    
+    demande = get_object_or_404(Demande, id=demande_id)
+    action = request.POST.get('action')
+    motif_refus = request.POST.get('motif_refus', '')
+    
+    if action == 'approuver' and demande.statut == 'en_attente':
+        demande.statut = 'approuvee'
+        demande.valide_par = request.user
+        demande.date_validation = timezone.now()
+        demande.save()
+        Notification.objects.create(
+            message=f"Votre demande #{demande.id} a ete approuvee par {request.user.username}.",
+            type='validation',
+            demande=demande
+        )
+        messages.success(request, f'Demande #{demande.id} approuvee!')
+    elif action == 'refuser' and demande.statut == 'en_attente':
+        demande.statut = 'refusee'
+        demande.motif_refus = motif_refus
+        demande.valide_par = request.user
+        demande.save()
+        Notification.objects.create(
+            message=f"Votre demande #{demande.id} a ete refusee. Motif: {motif_refus}",
+            type='refus',
+            demande=demande
+        )
+        messages.warning(request, f'Demande #{demande.id} refusee.')
+    
+    return redirect('espace_enseignant')
+
 def espace_etudiant(request):
     demandes = Demande.objects.filter(utilisateur=request.user).order_by('-date_demande')
 

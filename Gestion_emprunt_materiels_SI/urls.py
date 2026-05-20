@@ -43,6 +43,11 @@ urlpatterns = [
     # Espace étudiant
     path('inscription/', views.inscription, name='inscription'),
     path('espace_etudiant/', views.espace_etudiant, name='espace_etudiant'),
+    path('espace_enseignant/', views.espace_enseignant, name='espace_enseignant'),
+    path('espace_technicien/', views.espace_technicien, name='espace_technicien'),
+    path('profil-enseignant/', views.profil_enseignant, name='profil_enseignant'),
+    path('profil-technicien/', views.profil_technicien, name='profil_technicien'),
+    path('enseignant/demande/<int:demande_id>/valider/', views.enseignant_valider_demande, name='enseignant_valider_demande'),
     path('nouvelle_demande/', views.nouvelle_demande, name='nouvelle_demande'),
     path('mes_demandes/', views.mes_demandes, name='mes_demandes'),
     path('demande/<int:demande_id>/detail/', views.detail_demande, name='detail_demande'),
