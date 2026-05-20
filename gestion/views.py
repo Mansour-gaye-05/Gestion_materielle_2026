@@ -786,10 +786,6 @@ def connexion(request):
             log_action(request, 'connexion', f"{user.username} s'est connecte depuis {request.META.get('REMOTE_ADDR', 'IP inconnue')}")
             if user.role == 'admin' or user.is_superuser:
                 return redirect('dashboard')
-            elif user.role == 'enseignant':
-                return redirect('espace_enseignant')
-            elif user.role == 'technicien':
-                return redirect('espace_technicien')
             else:
                 return redirect('espace_etudiant')
         else:
