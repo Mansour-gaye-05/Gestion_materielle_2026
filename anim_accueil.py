@@ -1,4 +1,4 @@
-﻿with open('templates/accueil.html', 'r', encoding='utf-8') as f:
+﻿with open('templates/index.html', 'r', encoding='utf-8') as f:
     content = f.read()
 
 # Ajouter CSS animations
@@ -122,6 +122,6 @@ window.addEventListener(\'load\', () => {'''
 
 content = content.replace(old_script, new_script)
 
-with open('templates/accueil.html', 'w', encoding='utf-8') as f:
+with open('templates/index.html', 'w', encoding='utf-8') as f:
     f.write(content)
 print('Animations accueil ajoutees!')

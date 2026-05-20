@@ -2,7 +2,7 @@
     content = f.read()
 
 old = """def accueil(request):
-    return render(request, 'accueil.html')"""
+    return render(request, 'index.html')"""
 
 new = """def accueil(request):
     context = {
@@ -11,7 +11,7 @@ new = """def accueil(request):
         'total_utilisateurs': Utilisateur.objects.count(),
         'total_demandes': Demande.objects.count(),
     }
-    return render(request, 'accueil.html', context)"""
+    return render(request, 'index.html', context)"""
 
 content = content.replace(old, new)
 with open('gestion/views.py', 'w', encoding='utf-8') as f:

@@ -37,7 +37,7 @@ def log_action(request_or_user, action, description, demande=None, materiel=None
 # ==================== PAGE D'ACCUEIL ====================
 
 def accueil(request):
-    return render(request, 'accueil.html')
+    return render(request, 'index.html')
 
 
 # ==================== PAGE D'ACCUEIL / CATALOGUE ====================

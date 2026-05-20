@@ -76,7 +76,7 @@ def accueil(request):
         'quantite_disponible': quantite_disponible,
         'total_utilisateurs': Utilisateur.objects.count(),
     }
-    return render(request, 'accueil.html', context)
+    return render(request, 'index.html', context)
 
 # ==================== PAGE D'ACCUEIL / CATALOGUE ====================
 

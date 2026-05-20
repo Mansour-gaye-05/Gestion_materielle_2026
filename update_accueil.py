@@ -1,4 +1,4 @@
-﻿with open('templates/accueil.html', 'w', encoding='utf-8') as f:
+﻿with open('templates/index.html', 'w', encoding='utf-8') as f:
     f.write("""{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
@@ -337,4 +337,4 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>""")
-print('accueil.html reecrit!')
+print('index.html reecrit!')
